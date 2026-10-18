@@ -1,18 +1,23 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Trophy, Star, Users, Calendar, Plus, X, Pencil, Shield, Lock, Check, ChevronLeft, Unlock, Save } from "lucide-react";
 
+// Misma línea visual que Meta Lab (tema oscuro). `ink` es el texto sobre fondo oscuro;
+// `onGold` el texto sobre botones de color (dorado, turquesa); `night`/`bar` fondos oscuros.
 const TOKENS = {
-  ink: "#111318",
-  bg: "#FFFFFF",
-  surface: "#FAFAF7",
+  ink: "#E6EDF3",
+  onGold: "#06231C",
+  night: "#0B0F14",
+  bar: "#18202B",
+  bg: "#0B0F14",
+  surface: "#121821",
   turf: "#123524",
   turfBright: "#1E5E3C",
-  gold: "#E0A916",
-  cyan: "#5FD8E0",
-  accent: "#0C7B86",
-  line: "#E3E1D8",
-  muted: "#6B7280",
-  danger: "#C4432E",
+  gold: "#E3B341",
+  cyan: "#4F8CFF",
+  accent: "#36C2A2",
+  line: "#243040",
+  muted: "#8B98A9",
+  danger: "#F85149",
   chalk: "#F5F4EE",
 };
 
@@ -99,7 +104,7 @@ class ErrorBoundary extends React.Component {
           </p>
           <button
             onClick={() => this.setState({ error: null })}
-            style={{ background: TOKENS.gold, color: TOKENS.ink }}
+            style={{ background: TOKENS.gold, color: TOKENS.onGold }}
             className="text-xs font-bold uppercase tracking-wide px-3 py-2 rounded"
           >
             Try again
@@ -412,20 +417,20 @@ async function saveKey(key, value, shared = true) {
 }
 
 const headingStyle = {
-  fontFamily: "'Chakra Petch', sans-serif",
+  fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif",
   fontWeight: 700,
   textTransform: "uppercase",
   letterSpacing: "0.04em",
 };
 
 const pixelStyle = {
-  fontFamily: "'Chakra Petch', sans-serif",
+  fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif",
   fontWeight: 700,
   textTransform: "uppercase",
   letterSpacing: "0.03em",
 };
 
-const bioFont = { fontFamily: "'Chakra Petch', sans-serif", fontWeight: 400, fontSize: "1.05rem", lineHeight: 1.6, letterSpacing: "0.01em" };
+const bioFont = { fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif", fontWeight: 400, fontSize: "1.05rem", lineHeight: 1.6, letterSpacing: "0.01em" };
 
 const FONT_IMPORTS = (
   <style>{`
@@ -699,7 +704,7 @@ function DataTransfer({ onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
       <div style={{ background: TOKENS.surface, borderColor: TOKENS.line, maxHeight: "88vh" }}
            className="border rounded-sm w-full max-w-2xl overflow-y-auto">
-        <div style={{ background: "#000000" }} className="px-5 py-3 flex items-center justify-between">
+        <div style={{ background: TOKENS.bar }} className="px-5 py-3 flex items-center justify-between">
           <h3 style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.95rem" }}>Mover tus datos</h3>
           <button onClick={onClose} style={{ color: TOKENS.chalk }} className="p-1"><X size={16} /></button>
         </div>
@@ -716,12 +721,12 @@ function DataTransfer({ onClose }) {
             {import.meta.env.DEV && (
               <div className="flex items-center gap-2 flex-wrap mb-3">
                 <button onClick={() => saveToProject(false)} disabled={busy}
-                        style={{ background: busy ? TOKENS.line : TOKENS.gold, color: TOKENS.ink }}
+                        style={{ background: busy ? TOKENS.line : TOKENS.gold, color: busy ? TOKENS.ink : TOKENS.onGold }}
                         className="text-xs font-bold uppercase tracking-wide px-3 py-2 rounded">
                   Guardar en el proyecto
                 </button>
                 <button onClick={() => saveToProject(true)} disabled={busy}
-                        style={{ background: busy ? TOKENS.line : TOKENS.ink, color: TOKENS.gold }}
+                        style={{ background: busy ? TOKENS.line : TOKENS.night, color: TOKENS.gold }}
                         className="text-xs font-bold uppercase tracking-wide px-3 py-2 rounded">
                   Guardar y publicar
                 </button>
@@ -730,7 +735,7 @@ function DataTransfer({ onClose }) {
             )}
             <div className="flex items-center gap-2 flex-wrap mb-2">
               <button onClick={download} disabled={busy}
-                      style={{ background: busy ? TOKENS.line : TOKENS.gold, color: TOKENS.ink }}
+                      style={{ background: busy ? TOKENS.line : TOKENS.gold, color: busy ? TOKENS.ink : TOKENS.onGold }}
                       className="text-xs font-bold uppercase tracking-wide px-3 py-2 rounded">
                 Download file
               </button>
@@ -760,7 +765,7 @@ function DataTransfer({ onClose }) {
             <div className="flex items-center gap-2 flex-wrap">
               <button onClick={() => importPaste("merge")} disabled={busy || !paste.trim()}
                       style={{ background: paste.trim() && !busy ? TOKENS.gold : TOKENS.line,
-                               color: paste.trim() && !busy ? TOKENS.ink : TOKENS.muted }}
+                               color: paste.trim() && !busy ? TOKENS.onGold : TOKENS.muted}}
                       className="text-xs font-bold uppercase tracking-wide px-3 py-2 rounded">
                 Merge in
               </button>
@@ -1041,14 +1046,14 @@ export default function LeagueApp() {
         background: TOKENS.bg,
         color: TOKENS.ink,
         minHeight: "100vh",
-        fontFamily: "'Chakra Petch', sans-serif",
+        fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif",
       }}
     >
       {FONT_IMPORTS}
       {/* `zoom` scales and reflows the entire app, header included */}
       <div style={{ zoom }}>
       {/* Header */}
-      <div style={{ background: "#000000" }} className="relative overflow-hidden">
+      <div style={{ background: TOKENS.bar }} className="relative overflow-hidden">
         <div className="absolute inset-0"
              style={{ backgroundImage: `url(${HEADER_BANNER})`, backgroundSize: "cover",
                       backgroundPosition: "center 30%", backgroundRepeat: "no-repeat" }} />
@@ -1077,7 +1082,7 @@ export default function LeagueApp() {
                   <div className="flex gap-2 pt-1">
                     <button
                       onClick={() => { persistMeta(metaDraft); setEditingMeta(false); }}
-                      style={{ background: TOKENS.gold, color: TOKENS.ink }}
+                      style={{ background: TOKENS.gold, color: TOKENS.onGold }}
                       className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded"
                     >
                       Save
@@ -1119,7 +1124,7 @@ export default function LeagueApp() {
               onClick={() => (unlocked ? setUnlocked(false) : requestUnlock())}
               style={{
                 background: unlocked ? TOKENS.gold : "rgba(255,255,255,0.08)",
-                color: unlocked ? TOKENS.ink : TOKENS.chalk,
+                color: unlocked ? TOKENS.onGold : TOKENS.chalk,
                 border: unlocked ? "none" : `1px solid ${TOKENS.cyan}55`,
               }}
               className="shrink-0 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-3 py-2 rounded"
@@ -1163,9 +1168,10 @@ export default function LeagueApp() {
                   style={{
                     ...headingStyle,
                     fontSize: "0.72rem",
-                    background: active ? TOKENS.gold : "#FFFFFF",
-                    color: TOKENS.ink,
-                    border: "none",
+                    // como el menú de Meta Lab: activo en turquesa suave, el resto sobre panel oscuro
+                    background: active ? "rgba(54,194,162,0.22)" : "rgba(11,15,20,0.78)",
+                    color: active ? "#FFFFFF" : TOKENS.ink,
+                    border: `1px solid ${active ? TOKENS.accent : TOKENS.line}`,
                     boxShadow: "0 1px 3px rgba(0,0,0,0.35)",
                     cursor: tab.live ? "pointer" : "default",
                   }}
@@ -1184,7 +1190,7 @@ export default function LeagueApp() {
       <div
         style={{
           position: "fixed", top: 14, right: 14, zIndex: 50,
-          background: TOKENS.ink, color: TOKENS.gold,
+          background: TOKENS.night, color: TOKENS.gold,
           border: `1px solid ${TOKENS.gold}`,
           transition: "opacity 0.3s, transform 0.3s",
           opacity: saveFlash ? 1 : 0,
@@ -1221,7 +1227,7 @@ export default function LeagueApp() {
             />
             {pinError && <p style={{ color: TOKENS.danger }} className="text-xs mb-2">{pinError}</p>}
             <div className="flex gap-2 mt-3">
-              <button onClick={submitPin} style={{ background: TOKENS.gold, color: TOKENS.ink }} className="flex-1 text-xs font-bold uppercase tracking-wide py-2 rounded">
+              <button onClick={submitPin} style={{ background: TOKENS.gold, color: TOKENS.onGold }} className="flex-1 text-xs font-bold uppercase tracking-wide py-2 rounded">
                 {setupPin === "create" ? "Set code" : "Unlock"}
               </button>
               <button onClick={() => setPinPrompt(false)} style={{ color: TOKENS.muted }} className="text-xs font-bold uppercase tracking-wide py-2 px-3">
@@ -1283,7 +1289,7 @@ export default function LeagueApp() {
                     const next = [...teams, emptyTeam(teams.length)];
                     persistTeams(next);
                   }}
-                  style={{ background: TOKENS.gold, color: TOKENS.ink }}
+                  style={{ background: TOKENS.gold, color: TOKENS.onGold }}
                   className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-3 py-2 rounded"
                 >
                   <Plus size={13} /> Add team
@@ -1426,7 +1432,7 @@ function FilterPill({ active, onClick, children }) {
         ...headingStyle,
         fontSize: "0.65rem",
         background: active ? TOKENS.gold : TOKENS.surface,
-        color: active ? TOKENS.ink : TOKENS.muted,
+        color: active ? TOKENS.onGold : TOKENS.muted,
         border: `1px solid ${active ? TOKENS.gold : TOKENS.line}`,
       }}
       className="px-2.5 py-1 rounded-sm"
@@ -2487,12 +2493,12 @@ function PowerRankingChart({ ordered, teams }) {
               <line x1={x(i)} x2={x(i)} y1={TOP - 8} y2={TOP + rows * LANE + 4}
                     stroke={TOKENS.line} strokeWidth="1" />
               <text x={x(i)} y={TOP - 16} textAnchor="middle"
-                    style={{ fill: TOKENS.muted, fontSize: 12, fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700 }}>
+                    style={{ fill: TOKENS.muted, fontSize: 12, fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif", fontWeight: 700 }}>
                 {p.short}
               </text>
               {(i === 0 || perTournament[i - 1].season !== p.season) && (
                 <text x={x(i)} y={TOP - 31} textAnchor="middle"
-                      style={{ fill: TOKENS.accent, fontSize: 10, fontFamily: "'Chakra Petch', sans-serif" }}>
+                      style={{ fill: TOKENS.accent, fontSize: 10, fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" }}>
                   {p.season}
                 </text>
               )}
@@ -2505,7 +2511,7 @@ function PowerRankingChart({ ordered, teams }) {
               <line x1={LABEL} x2={LABEL + plotW} y1={yRank(k + 1)} y2={yRank(k + 1)}
                     stroke={TOKENS.line} strokeWidth="1" strokeDasharray="2 4" opacity="0.5" />
               <text x={LABEL + plotW + 18} y={yRank(k + 1) + 5}
-                    style={{ fill: TOKENS.muted, fontSize: 13, fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700 }}>
+                    style={{ fill: TOKENS.muted, fontSize: 13, fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif", fontWeight: 700 }}>
                 {k + 1}º
               </text>
             </g>
@@ -2540,7 +2546,7 @@ function PowerRankingChart({ ordered, teams }) {
                 <circle cx={LABEL - 13} cy={pts[0][1]} r={5} fill={col} />
                 <text x={LABEL - 24} y={pts[0][1] + 5} textAnchor="end"
                       style={{ fill: faded ? TOKENS.muted : TOKENS.ink, fontSize: 13,
-                               fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700 }}>
+                               fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif", fontWeight: 700 }}>
                   {s.name.length > 17 ? s.name.slice(0, 16) + "…" : s.name}
                 </text>
               </g>
@@ -3211,7 +3217,7 @@ function HomeLeague({ results, matches, teams, onGo }) {
 
   return (
     <div style={{ background: TOKENS.surface, borderColor: TOKENS.line }} className="border rounded-sm overflow-hidden h-full">
-      <button onClick={() => onGo("league")} style={{ background: "#000000" }}
+      <button onClick={() => onGo("league")} style={{ background: TOKENS.bar }}
               className="w-full px-4 py-2.5 flex items-center gap-2 text-left">
         <span style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.85rem" }} className="flex-1">
           {LEAGUE_NAME}
@@ -3326,7 +3332,7 @@ function HomeLastTournament({ tournaments, teams, onGo }) {
   return (
     <div style={{ background: TOKENS.surface, borderColor: slam ? "#B8322F" : TOKENS.line }}
          className="border rounded-sm overflow-hidden h-full">
-      <button onClick={() => onGo("tournament")} style={{ background: "#000000" }}
+      <button onClick={() => onGo("tournament")} style={{ background: TOKENS.bar }}
               className="w-full px-4 py-2.5 flex items-center gap-2 text-left">
         <span style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.85rem" }} className="flex-1 truncate">
           Kikudes {last.kikudes || "?"}
@@ -3440,7 +3446,7 @@ function HomeLastSeason({ tournaments, teams, onGo }) {
   return (
     <div style={{ background: TOKENS.surface, borderColor: golden ? "#D4A017" : TOKENS.line }}
          className="border rounded-sm overflow-hidden h-full">
-      <button onClick={() => onGo("seasons")} style={{ background: "#000000" }}
+      <button onClick={() => onGo("seasons")} style={{ background: TOKENS.bar }}
               className="w-full px-4 py-2.5 flex items-center gap-2 text-left">
         <span style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.85rem" }} className="flex-1 truncate">
           Temporada {season}
@@ -3528,7 +3534,7 @@ function HomePowerRanking({ tournaments, teams, onGo }) {
   return (
     <div style={{ background: TOKENS.surface, borderColor: TOKENS.line }}
          className="border rounded-sm overflow-hidden h-full">
-      <button onClick={() => onGo("ranking")} style={{ background: "#000000" }}
+      <button onClick={() => onGo("ranking")} style={{ background: TOKENS.bar }}
               className="w-full px-4 py-2.5 flex items-center gap-2 text-left">
         <span style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.85rem" }} className="flex-1 truncate">
           Power ranking
@@ -3793,7 +3799,7 @@ function SeasonsPage({ teams, unlocked, onOpenTournament }) {
                   return (
                     <div key={k} style={{ background: TOKENS.surface, borderColor: TOKENS.line }}
                          className="border rounded-sm overflow-hidden">
-                      <div style={{ background: "#000000" }} className="px-4 py-2 flex items-center gap-2 flex-wrap">
+                      <div style={{ background: TOKENS.bar }} className="px-4 py-2 flex items-center gap-2 flex-wrap">
                         <span style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.8rem" }}>
                           {k === "—" ? "Sin parte" : `Kikudes ${k}`}
                         </span>
@@ -4794,7 +4800,7 @@ function LeagueSetup({ teams, onRebuilt, onClose }) {
         </div>
       ) : (
         <button onClick={() => setConfirm(true)} disabled={!ok}
-                style={{ background: ok ? TOKENS.gold : TOKENS.line, color: TOKENS.ink }}
+                style={{ background: ok ? TOKENS.gold : TOKENS.line, color: ok ? TOKENS.onGold : TOKENS.ink }}
                 className="text-xs font-bold uppercase tracking-wide px-4 py-2 rounded">
           Aplicar cambios
         </button>
@@ -5055,7 +5061,7 @@ function LeagueSaveBar({ results, version }) {
             {open ? "cerrar" : entry ? "nombre / temporada" : "nombre / temporada"}
           </button>
           <button onClick={save} disabled={busy || upToDate}
-                  style={{ background: upToDate ? TOKENS.line : TOKENS.gold, color: TOKENS.ink, opacity: busy ? 0.6 : 1 }}
+                  style={{ background: upToDate ? TOKENS.line : TOKENS.gold, color: upToDate ? TOKENS.ink : TOKENS.onGold, opacity: busy ? 0.6 : 1 }}
                   className="rounded flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-3 py-1.5">
             <Save size={11} /> {busy ? "Guardando…" : upToDate ? "Al día" : "Guardar liga"}
           </button>
@@ -5075,7 +5081,7 @@ function LeagueSaveBar({ results, version }) {
             <option value="">Sin parte</option>
             {KIKUDES_PRESETS.map((k) => <option key={k} value={k}>{k}</option>)}
           </select>
-          <button onClick={save} disabled={busy} style={{ background: TOKENS.gold, color: TOKENS.ink }}
+          <button onClick={save} disabled={busy} style={{ background: TOKENS.gold, color: TOKENS.onGold }}
                   className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded">Guardar</button>
         </div>
       )}
@@ -5371,7 +5377,7 @@ function AddEntry({ sides, teams, label, field, extra, withDuration, onAdd }) {
                style={{ ...field, width: 96 }} className="border rounded px-2 py-1 text-xs outline-none" />
       )}
       <button onClick={done} disabled={!player.trim()}
-              style={{ background: player.trim() ? TOKENS.gold : TOKENS.line, color: TOKENS.ink }}
+              style={{ background: player.trim() ? TOKENS.gold : TOKENS.line, color: player.trim() ? TOKENS.onGold : TOKENS.ink }}
               className="text-xs font-bold uppercase px-2 py-1 rounded">Añadir</button>
       <button onClick={() => setOpen(false)} style={{ color: TOKENS.muted }}
               className="text-xs font-bold uppercase px-1">Cancelar</button>
@@ -5415,7 +5421,7 @@ function LeagueFixtures({ teams, results, unlocked, setResult, schedule: schedul
           );
         })()}
         <div style={{ background: TOKENS.surface, borderColor: TOKENS.line }} className="border rounded-sm overflow-hidden">
-          <div style={{ background: "#000000" }} className="px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
+          <div style={{ background: TOKENS.bar }} className="px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
             <h3 style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.85rem" }}>
               Jornada {md.matchday}
               <span style={{ color: TOKENS.muted, fontSize: "0.6rem" }} className="ml-2">
@@ -5534,7 +5540,7 @@ function LeagueTable({ teams, table, playedCount, totalCount }) {
   return (
     <div>
       <div style={{ background: TOKENS.surface, borderColor: TOKENS.line }} className="border rounded-sm overflow-hidden">
-        <div style={{ background: "#000000" }} className="px-5 py-3 flex items-center justify-between flex-wrap gap-2">
+        <div style={{ background: TOKENS.bar }} className="px-5 py-3 flex items-center justify-between flex-wrap gap-2">
           <h3 style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.95rem" }}>Tabla</h3>
           <span style={{ ...headingStyle, color: TOKENS.gold, fontSize: "0.6rem" }}>
             {playedCount}/{totalCount ?? leagueTotalCount()} jugados
@@ -6019,7 +6025,7 @@ function LeagueArchive({ teams, unlocked, onRestore }) {
                             <span style={{ color: TOKENS.muted }} className="text-xs">
                               Reemplaza la liga en curso (se hace respaldo antes).
                             </span>
-                            <button onClick={() => load(rec)} disabled={busy} style={{ background: TOKENS.gold, color: TOKENS.ink }}
+                            <button onClick={() => load(rec)} disabled={busy} style={{ background: TOKENS.gold, color: TOKENS.onGold }}
                                     className="text-xs font-bold uppercase px-3 py-1 rounded">Abrir</button>
                             <button onClick={() => setConfirmLoad(null)} style={{ color: TOKENS.muted }}
                                     className="text-xs font-bold uppercase px-1">No</button>
@@ -6098,7 +6104,7 @@ function LeagueAwards({ teams, table, results, playedCount, totalCount, unlocked
 
       {/* podio: una sola tarjeta, tres filas con todo el detalle */}
       <div style={{ background: TOKENS.surface, borderColor: TOKENS.gold }} className="border rounded-sm overflow-hidden mb-3">
-        <div style={{ background: "#000000" }} className="px-4 py-2 flex items-center gap-2">
+        <div style={{ background: TOKENS.bar }} className="px-4 py-2 flex items-center gap-2">
           <Trophy size={13} style={{ color: TOKENS.gold }} />
           <span style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.75rem" }}>Podio de la liga</span>
         </div>
@@ -6259,7 +6265,7 @@ function LeagueStats({ teams, table, results, playedCount, draft: draftProp, tra
       </div>
 
       <div style={{ background: TOKENS.surface, borderColor: TOKENS.line }} className="border rounded-sm overflow-hidden">
-        <div style={{ background: "#000000" }} className="px-5 py-3">
+        <div style={{ background: TOKENS.bar }} className="px-5 py-3">
           <h4 style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.85rem" }}>Per-team rates</h4>
         </div>
         <div className="overflow-x-auto">
@@ -6369,7 +6375,7 @@ function Roulette({ names, teams, title, onAccept, onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)" }}>
       <div style={{ background: TOKENS.surface, borderColor: TOKENS.line, maxHeight: "92vh" }}
            className="border rounded-sm w-full max-w-lg overflow-y-auto">
-        <div style={{ background: "#000000" }} className="px-5 py-3 flex items-center justify-between">
+        <div style={{ background: TOKENS.bar }} className="px-5 py-3 flex items-center justify-between">
           <h3 style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.95rem" }}>{title}</h3>
           <button onClick={onClose} style={{ color: TOKENS.chalk }} className="p-1"><X size={16} /></button>
         </div>
@@ -6393,7 +6399,7 @@ function Roulette({ names, teams, title, onAccept, onClose }) {
                       textAnchor="middle" dominantBaseline="middle"
                       transform={`rotate(${i * seg + seg / 2} ${CX + R * 0.62 * Math.cos((i * seg + seg / 2 - 90) * (Math.PI / 180))} ${CY + R * 0.62 * Math.sin((i * seg + seg / 2 - 90) * (Math.PI / 180))})`}
                       style={{ fill: readableOn(colorOf(n)), fontSize: pool.length > 8 ? 9 : 11,
-                               fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700 }}
+                               fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif", fontWeight: 700 }}
                     >
                       {n.length > 14 ? n.slice(0, 13) + "…" : n}
                     </text>
@@ -6438,13 +6444,13 @@ function Roulette({ names, teams, title, onAccept, onClose }) {
           <div className="flex items-center gap-2 flex-wrap">
             {!done && (
               <button onClick={spin} disabled={spinning}
-                      style={{ background: spinning ? TOKENS.line : TOKENS.gold, color: TOKENS.ink }}
+                      style={{ background: spinning ? TOKENS.line : TOKENS.gold, color: spinning ? TOKENS.ink : TOKENS.onGold }}
                       className="text-xs font-bold uppercase tracking-wide px-4 py-2 rounded">
                 {spinning ? "Spinning…" : drawn.length === 0 ? "Spin" : "Spin again"}
               </button>
             )}
             {done && (
-              <button onClick={() => onAccept(drawn)} style={{ background: TOKENS.gold, color: TOKENS.ink }}
+              <button onClick={() => onAccept(drawn)} style={{ background: TOKENS.gold, color: TOKENS.onGold }}
                       className="text-xs font-bold uppercase tracking-wide px-4 py-2 rounded">
                 Use this order
               </button>
@@ -6526,7 +6532,7 @@ function DraftTimer({ seconds = DRAFT_SECONDS }) {
       <div className="flex items-center gap-1.5 shrink-0">
         <button
           onClick={() => (expired ? restart() : setRunning((r) => !r))}
-          style={{ background: running ? TOKENS.line : TOKENS.gold, color: TOKENS.ink }}
+          style={{ background: running ? TOKENS.line : TOKENS.gold, color: running ? TOKENS.ink : TOKENS.onGold }}
           className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded"
         >
           {running ? "Pause" : expired ? "Restart" : "Start"}
@@ -6717,7 +6723,7 @@ function LeagueDraft({ teams, unlocked, results, onLeagueChanged }) {
             The league has changed — it now has {LEAGUE_TEAM_NAMES.length} clubs. The draft below has been updated to
             match; anything belonging to a club that left is still stored.
           </span>
-          <button onClick={syncToLeague} style={{ background: TOKENS.gold, color: TOKENS.ink }}
+          <button onClick={syncToLeague} style={{ background: TOKENS.gold, color: TOKENS.onGold }}
                   className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded shrink-0">
             Save & clear old clubs
           </button>
@@ -6726,7 +6732,7 @@ function LeagueDraft({ teams, unlocked, results, onLeagueChanged }) {
 
       {/* ---- Pick order ---- */}
       <div style={{ background: TOKENS.surface, borderColor: TOKENS.line }} className="border rounded-sm overflow-hidden">
-        <div style={{ background: "#000000" }} className="px-5 py-3 flex items-center gap-2 flex-wrap">
+        <div style={{ background: TOKENS.bar }} className="px-5 py-3 flex items-center gap-2 flex-wrap">
           <h3 style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.95rem" }} className="flex-1">Orden de picks</h3>
           {unlocked && (
             <button
@@ -6741,7 +6747,7 @@ function LeagueDraft({ teams, unlocked, results, onLeagueChanged }) {
           {unlocked && (
             <button
               onClick={() => setEditOrder(!editOrder)}
-              style={{ background: editOrder ? TOKENS.gold : "rgba(255,255,255,0.1)", color: editOrder ? TOKENS.ink : TOKENS.chalk }}
+              style={{ background: editOrder ? TOKENS.gold : "rgba(255,255,255,0.1)", color: editOrder ? TOKENS.onGold : TOKENS.chalk}}
               className="text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded"
             >
               {editOrder ? "Done" : "Edit order"}
@@ -6803,7 +6809,7 @@ function LeagueDraft({ teams, unlocked, results, onLeagueChanged }) {
 
       {/* ---- Phase 1: Franchise Player ---- */}
       <div style={{ background: TOKENS.surface, borderColor: TOKENS.line }} className="border rounded-sm overflow-hidden">
-        <div style={{ background: "#000000" }} className="px-5 py-3 flex items-center justify-between flex-wrap gap-2">
+        <div style={{ background: TOKENS.bar }} className="px-5 py-3 flex items-center justify-between flex-wrap gap-2">
           <h3 style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.95rem" }}>Phase 1 · Franchise Player</h3>
           <span style={{ ...headingStyle, color: TOKENS.gold, fontSize: "0.6rem" }}>1 pick each</span>
         </div>
@@ -6817,7 +6823,7 @@ function LeagueDraft({ teams, unlocked, results, onLeagueChanged }) {
 
       {/* ---- Phase 2: Ban ---- */}
       <div style={{ background: TOKENS.surface, borderColor: TOKENS.line }} className="border rounded-sm overflow-hidden">
-        <div style={{ background: "#000000" }} className="px-5 py-3 flex items-center justify-between flex-wrap gap-2">
+        <div style={{ background: TOKENS.bar }} className="px-5 py-3 flex items-center justify-between flex-wrap gap-2">
           <h3 style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.95rem" }}>Phase 2 · Ban</h3>
           <div className="flex items-center gap-2">
             {unlocked && (
@@ -6844,7 +6850,7 @@ function LeagueDraft({ teams, unlocked, results, onLeagueChanged }) {
       <div>
         <DraftTimer />
         <div style={{ background: TOKENS.surface, borderColor: TOKENS.line }} className="border rounded-sm overflow-hidden mt-3">
-        <div style={{ background: "#000000" }} className="px-5 py-3 flex items-center justify-between flex-wrap gap-2">
+        <div style={{ background: TOKENS.bar }} className="px-5 py-3 flex items-center justify-between flex-wrap gap-2">
           <h3 style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.95rem" }}>Fase 3 · Draft de jugadores</h3>
           <span style={{ ...headingStyle, color: TOKENS.gold, fontSize: "0.6rem" }}>
             {filled}/{totalSlots} plazas · {DRAFT_ROUNDS} rondas
@@ -7015,13 +7021,13 @@ function CompactRosters({ draft, trades, clubs, teams }) {
         <p style={{ color: TOKENS.muted }} className="text-xs flex-1">
           Todos los planteles en una pantalla, ordenados por línea. Una sola captura.
         </p>
-        <button onClick={copy} style={{ background: TOKENS.gold, color: TOKENS.ink }}
+        <button onClick={copy} style={{ background: TOKENS.gold, color: TOKENS.onGold }}
                 className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded shrink-0">
           {copied ? "copiado" : "copiar como texto"}
         </button>
       </div>
 
-      <div style={{ background: "#FFFFFF", borderColor: TOKENS.line }}
+      <div style={{ background: TOKENS.surface, borderColor: TOKENS.line }}
            className="border rounded-sm p-3">
         {/* cabecera, para que la captura se explique sola */}
         <div className="flex items-center gap-2 mb-2.5 flex-wrap"
@@ -7679,7 +7685,7 @@ function LeagueTrades({ teams, unlocked }) {
         <h3 style={{ ...headingStyle, fontSize: "0.9rem", color: TOKENS.accent }}>Traspasos</h3>
         {unlocked && !adding && (
           <button onClick={() => { cancelForm(); setAdding(true); }}
-                  style={{ background: TOKENS.gold, color: TOKENS.ink }}
+                  style={{ background: TOKENS.gold, color: TOKENS.onGold }}
                   className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded">
             <Plus size={12} /> Record a trade
           </button>
@@ -7758,7 +7764,7 @@ function LeagueTrades({ teams, unlocked }) {
                     disabled={!from || !to || from === to ||
                               (editing ? players.every((p) => !p.trim())
                                        : (players.every((p) => !p.trim()) && back.every((p) => !p.trim())))}
-                    style={{ background: TOKENS.gold, color: TOKENS.ink }}
+                    style={{ background: TOKENS.gold, color: TOKENS.onGold }}
                     className="text-xs font-bold uppercase tracking-wide px-4 py-2 rounded">
               {editing ? "Save changes" : "Record"}
             </button>
@@ -8075,7 +8081,7 @@ function MvpAward({ title, subtitle, rows, teams, empty, accent }) {
 
   return (
     <div style={{ background: TOKENS.surface, borderColor: col }} className="border rounded-sm overflow-hidden">
-      <div style={{ background: "#000000" }} className="px-3 py-2 flex items-center justify-between gap-2 flex-wrap">
+      <div style={{ background: TOKENS.bar }} className="px-3 py-2 flex items-center justify-between gap-2 flex-wrap">
         <span style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.78rem" }}>{title}</span>
         {subtitle && <span style={{ color: TOKENS.muted, fontSize: "0.55rem" }}>{subtitle}</span>}
       </div>
@@ -8478,7 +8484,7 @@ function TournamentMeta({ t, seasons, unlocked, onUpdate, onAddSeason }) {
                 className="border rounded px-2 py-1 text-sm outline-none"
               />
               <button onClick={commit} disabled={!draft.trim()}
-                      style={{ background: draft.trim() ? TOKENS.gold : TOKENS.line, color: TOKENS.ink }}
+                      style={{ background: draft.trim() ? TOKENS.gold : TOKENS.line, color: draft.trim() ? TOKENS.onGold : TOKENS.ink }}
                       className="text-xs font-bold uppercase px-2.5 py-1 rounded">Añadir</button>
               <button onClick={() => setAddingSeason(false)} style={{ color: TOKENS.muted }}
                       className="text-xs font-bold uppercase px-2 py-1">Cancelar</button>
@@ -8522,7 +8528,7 @@ function SeasonPoints({ list, teams }) {
 
   return (
     <div style={{ background: TOKENS.surface, borderColor: TOKENS.line }} className="border rounded-sm overflow-hidden mb-3">
-      <div style={{ background: "#000000" }} className="px-4 py-2 flex items-center justify-between flex-wrap gap-2">
+      <div style={{ background: TOKENS.bar }} className="px-4 py-2 flex items-center justify-between flex-wrap gap-2">
         <h5 style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.72rem" }}>Puntos de temporada</h5>
         <span style={{ ...headingStyle, color: TOKENS.gold, fontSize: "0.55rem" }}>
           {counted} of {list.length} tournament{list.length === 1 ? "" : "s"} counted
@@ -8763,11 +8769,11 @@ function RulesPage({ unlocked }) {
           value={draft} onChange={(e) => setDraft(e.target.value)} rows={24}
           placeholder={"# The Draft\\n- Rosters are **23 players**\\n- One franchise pick, then one ban, then 22 snake rounds\\n\\n# Tournaments\\n- Groups decide seeding only\\n- Double elimination — lose twice and you're out"}
           style={{ borderColor: TOKENS.line, background: TOKENS.bg, color: TOKENS.ink,
-                   fontFamily: "'Chakra Petch', sans-serif" }}
+                   fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" }}
           className="w-full border rounded px-3 py-2 text-sm outline-none"
         />
         <div className="flex items-center gap-2 mt-3">
-          <button onClick={save} style={{ background: TOKENS.gold, color: TOKENS.ink }}
+          <button onClick={save} style={{ background: TOKENS.gold, color: TOKENS.onGold }}
                   className="text-xs font-bold uppercase tracking-wide px-4 py-2 rounded">Guardar reglas</button>
           <button onClick={() => setEditing(false)} style={{ color: TOKENS.muted }}
                   className="text-xs font-bold uppercase tracking-wide px-3 py-2">Cancelar</button>
@@ -8779,7 +8785,7 @@ function RulesPage({ unlocked }) {
   return (
     <div>
       {/* masthead */}
-      <div style={{ background: "#000000" }} className="rounded-sm px-5 py-6 mb-5 relative overflow-hidden">
+      <div style={{ background: TOKENS.bar }} className="rounded-sm px-5 py-6 mb-5 relative overflow-hidden">
         <div style={{ position: "absolute", inset: 0, opacity: 0.10,
                       backgroundImage: `repeating-linear-gradient(135deg, ${TOKENS.gold} 0 2px, transparent 2px 16px)` }} />
         <div className="relative flex items-end justify-between gap-4 flex-wrap">
@@ -8793,7 +8799,7 @@ function RulesPage({ unlocked }) {
           </div>
           {unlocked && (
             <button onClick={() => { setDraft(doc.text || ""); setEditing(true); }}
-                    style={{ background: TOKENS.gold, color: TOKENS.ink }}
+                    style={{ background: TOKENS.gold, color: TOKENS.onGold }}
                     className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-3 py-2 rounded shrink-0">
               <Pencil size={12} /> {doc.text ? "Edit" : "Write the rules"}
             </button>
@@ -9098,7 +9104,7 @@ function ArchivePage({ teams, unlocked, onOpenTournament, nested, current: curre
                                         <span style={{ color: TOKENS.muted }} className="text-xs">
                                           Open this one instead?{current && !current.archiveId ? " The one open there hasn't been saved." : ""}
                                         </span>
-                                        <button onClick={() => openFromArchive(rec)} style={{ background: TOKENS.gold, color: TOKENS.ink }}
+                                        <button onClick={() => openFromArchive(rec)} style={{ background: TOKENS.gold, color: TOKENS.onGold }}
                                                 className="text-xs font-bold uppercase px-2.5 py-1 rounded">Yes, open</button>
                                         <button onClick={() => setPendingOpen(null)} style={{ color: TOKENS.muted }}
                                                 className="text-xs font-bold uppercase px-2 py-1">Cancelar</button>
@@ -9351,7 +9357,7 @@ function TournamentPage({ teams, unlocked }) {
           {unlocked && (
             <div className="mt-5 flex items-center gap-3 flex-wrap">
               <button onClick={saveToArchive} disabled={archive === undefined}
-                      style={{ background: archive === undefined ? TOKENS.line : TOKENS.gold, color: TOKENS.ink }}
+                      style={{ background: archive === undefined ? TOKENS.line : TOKENS.gold, color: archive === undefined ? TOKENS.ink : TOKENS.onGold }}
                       className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-4 py-2.5 rounded">
                 <Trophy size={13} /> {isSaved ? "Save changes to archive" : "Save tournament to archive"}
               </button>
@@ -9463,7 +9469,7 @@ function SetupWizard({ teams, onCreate }) {
                 style={{
                   background: active ? TOKENS.gold : TOKENS.surface,
                   borderColor: active ? TOKENS.gold : TOKENS.line,
-                  color: active ? TOKENS.ink : TOKENS.ink,
+                  color: active ? TOKENS.onGold : TOKENS.ink,
                 }}
                 className="border rounded-sm px-3 py-2 flex items-center gap-2 text-left"
               >
@@ -9611,7 +9617,7 @@ function SetupWizard({ teams, onCreate }) {
       <button
         onClick={create}
         disabled={!canCreate}
-        style={{ background: canCreate ? TOKENS.gold : TOKENS.line, color: TOKENS.ink, opacity: canCreate ? 1 : 0.6 }}
+        style={{ background: canCreate ? TOKENS.gold : TOKENS.line, color: canCreate ? TOKENS.onGold : TOKENS.ink, opacity: canCreate ? 1 : 0.6 }}
         className="px-4 py-2.5 rounded text-xs font-bold uppercase tracking-wide"
       >
         Create groups
@@ -9746,7 +9752,7 @@ function PasteResults({ t, teams, onUpdate, onClose }) {
                 className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded">Comprobar</button>
         {preview && (
           <button onClick={apply} disabled={applicable === 0}
-                  style={{ background: applicable ? TOKENS.gold : TOKENS.line, color: TOKENS.ink }}
+                  style={{ background: applicable ? TOKENS.gold : TOKENS.line, color: applicable ? TOKENS.onGold : TOKENS.ink }}
                   className="text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded">
             Fill {applicable} fixture{applicable === 1 ? "" : "s"}
           </button>
@@ -9836,7 +9842,7 @@ function GroupsStage({ t, teams, unlocked, onUpdate, readOnly }) {
         const table = computeGroupTable(g, teams, crossFixtures);
         return (
           <div key={g.id} style={{ background: TOKENS.surface, borderColor: TOKENS.line }} className="border rounded-sm overflow-hidden">
-            <div style={{ background: "#000000" }} className="px-5 py-3">
+            <div style={{ background: TOKENS.bar }} className="px-5 py-3">
               <h3 style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.95rem" }}>{g.name}</h3>
             </div>
             <div className="overflow-x-auto">
@@ -9978,7 +9984,7 @@ function GroupsStage({ t, teams, unlocked, onUpdate, readOnly }) {
         <button
           onClick={lockSeeding}
           disabled={!allPlayed}
-          style={{ background: allPlayed ? TOKENS.gold : TOKENS.line, color: TOKENS.ink, opacity: allPlayed ? 1 : 0.6 }}
+          style={{ background: allPlayed ? TOKENS.gold : TOKENS.line, color: allPlayed ? TOKENS.onGold : TOKENS.ink, opacity: allPlayed ? 1 : 0.6 }}
           className="px-4 py-2.5 rounded text-xs font-bold uppercase tracking-wide"
         >
           {allPlayed ? "Lock groups & compute seeding" : "Finish all fixtures to lock seeding"}
@@ -9991,7 +9997,7 @@ function GroupsStage({ t, teams, unlocked, onUpdate, readOnly }) {
 function SeedTable({ t, teams }) {
   return (
     <div style={{ background: TOKENS.surface, borderColor: TOKENS.line }} className="border rounded-sm overflow-hidden">
-      <div style={{ background: "#000000" }} className="px-5 py-3">
+      <div style={{ background: TOKENS.bar }} className="px-5 py-3">
         <h3 style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.95rem" }}>Orden de siembra</h3>
       </div>
       <table className="w-full text-sm" style={{ borderCollapse: "collapse" }}>
@@ -10086,7 +10092,7 @@ function SeedingStage({ t, teams, unlocked, onUpdate }) {
               </button>
             ))}
           </div>
-          <button onClick={create} style={{ background: TOKENS.gold, color: TOKENS.ink }}
+          <button onClick={create} style={{ background: TOKENS.gold, color: TOKENS.onGold }}
                   className="px-4 py-2.5 rounded text-xs font-bold uppercase tracking-wide">
             Crear {format === "ladder" ? "escalera" : "cuadro"}
           </button>
@@ -10547,7 +10553,7 @@ function LadderStage({ t, teams, unlocked, onUpdate }) {
                 {/* etiqueta del escalón */}
                 <text x={x + 4} y={y - 6}
                       style={{ fill: m.isFinal ? TOKENS.gold : TOKENS.muted, fontSize: 9,
-                               fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700, letterSpacing: "0.08em" }}>
+                               fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif", fontWeight: 700, letterSpacing: "0.08em" }}>
                   {m.isFinal ? "FINAL" : `ESCALÓN ${i + 1}`}
                   {isNext && !done ? "  ·  AHORA" : ""}
                 </text>
@@ -10560,31 +10566,31 @@ function LadderStage({ t, teams, unlocked, onUpdate }) {
                 {/* lado que viene de abajo */}
                 <text x={x + 8} y={y + 18}
                       style={{ fill: aWin ? TOKENS.ink : m.a ? TOKENS.muted : TOKENS.line, fontSize: 11,
-                               fontFamily: "'Chakra Petch', sans-serif", fontWeight: aWin ? 700 : 400 }}>
+                               fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif", fontWeight: aWin ? 700 : 400 }}>
                   {nameOf(m.a).length > 15 ? nameOf(m.a).slice(0, 14) + "…" : nameOf(m.a)}
                 </text>
                 {sa !== undefined && sa !== "" && (
                   <text x={x + COL - 38} y={y + 18} textAnchor="end"
                         style={{ fill: aWin ? TOKENS.gold : TOKENS.muted, fontSize: 12,
-                                 fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700 }}>{sa}</text>
+                                 fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif", fontWeight: 700 }}>{sa}</text>
                 )}
 
                 {/* quien esperaba en este escalón */}
                 <text x={x + 8} y={y + 45}
                       style={{ fill: bWin ? TOKENS.ink : TOKENS.muted, fontSize: 11,
-                               fontFamily: "'Chakra Petch', sans-serif", fontWeight: bWin ? 700 : 400 }}>
+                               fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif", fontWeight: bWin ? 700 : 400 }}>
                   {nameOf(m.b).length > 15 ? nameOf(m.b).slice(0, 14) + "…" : nameOf(m.b)}
                 </text>
                 {m.b && (
                   <text x={x + COL - 52} y={y + 45} textAnchor="end"
-                        style={{ fill: TOKENS.muted, fontSize: 8, fontFamily: "'Chakra Petch', sans-serif" }}>
+                        style={{ fill: TOKENS.muted, fontSize: 8, fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif" }}>
                     #{m.b.seed}
                   </text>
                 )}
                 {sb !== undefined && sb !== "" && (
                   <text x={x + COL - 38} y={y + 45} textAnchor="end"
                         style={{ fill: bWin ? TOKENS.gold : TOKENS.muted, fontSize: 12,
-                                 fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700 }}>{sb}</text>
+                                 fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif", fontWeight: 700 }}>{sb}</text>
                 )}
               </g>
             );
@@ -10596,7 +10602,7 @@ function LadderStage({ t, teams, unlocked, onUpdate }) {
               <rect x={cx(steps - 1)} y={cy(steps - 1) - 46} width={COL - 30} height={32} rx="3"
                     fill={`${TOKENS.gold}22`} stroke={TOKENS.gold} strokeWidth="2" />
               <text x={cx(steps - 1) + 10} y={cy(steps - 1) - 25}
-                    style={{ fill: TOKENS.ink, fontSize: 13, fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700 }}>
+                    style={{ fill: TOKENS.ink, fontSize: 13, fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', sans-serif", fontWeight: 700 }}>
                 🏆 {champion.teamName.length > 14 ? champion.teamName.slice(0, 13) + "…" : champion.teamName}
               </text>
             </g>
@@ -10742,7 +10748,7 @@ function BracketStage({ t, teams, unlocked, onUpdate }) {
           <div className="flex items-center gap-3 flex-wrap">
             <button
               onClick={() => { setEditPositions(!editPositions); setSwapFrom(null); }}
-              style={{ background: editPositions ? TOKENS.gold : TOKENS.surface, borderColor: TOKENS.line, color: TOKENS.ink }}
+              style={{ background: editPositions ? TOKENS.gold : TOKENS.surface, borderColor: TOKENS.line, color: editPositions ? TOKENS.onGold : TOKENS.ink }}
               className="border rounded flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide px-2.5 py-1"
             >
               <Pencil size={11} /> {editPositions ? "Done editing positions" : "Edit bracket positions"}
@@ -11109,7 +11115,7 @@ function TeamCard({ team, index, onClick, honours, franchise, leaguePos, tier, h
         )}
         <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
           {honours.founding && (
-            <div style={{ background: TOKENS.gold, color: TOKENS.ink, ...headingStyle, fontSize: "0.55rem" }}
+            <div style={{ background: TOKENS.gold, color: TOKENS.onGold, ...headingStyle, fontSize: "0.55rem" }}
                  className="px-1.5 py-0.5 flex items-center gap-1 rounded-sm">
               <Star size={10} fill={TOKENS.ink} /> Fundador
             </div>
@@ -13230,7 +13236,7 @@ function TeamDetail({ team, teams, unlocked, onBack, onSave, onDelete, onSwitch 
                   style={{ borderColor: TOKENS.line, background: TOKENS.bg, color: TOKENS.ink }}
                   className="flex-1 border rounded px-3 py-1.5 text-sm outline-none"
                 />
-                <button onClick={addTrophy} style={{ background: TOKENS.gold, color: TOKENS.ink }} className="px-3 rounded text-xs font-bold uppercase">
+                <button onClick={addTrophy} style={{ background: TOKENS.gold, color: TOKENS.onGold }} className="px-3 rounded text-xs font-bold uppercase">
                   Add
                 </button>
               </div>
@@ -13276,7 +13282,7 @@ function TeamDetail({ team, teams, unlocked, onBack, onSave, onDelete, onSwitch 
                 </button>
                 <button
                   onClick={() => { onSave(draft); setEditing(false); }}
-                  style={{ background: TOKENS.gold, color: TOKENS.ink }}
+                  style={{ background: TOKENS.gold, color: TOKENS.onGold }}
                   className="text-xs font-bold uppercase tracking-wide px-4 py-2 rounded"
                 >
                   Save team

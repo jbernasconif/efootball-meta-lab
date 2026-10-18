@@ -245,6 +245,7 @@ table.bk tr.has-lost td:first-child { box-shadow: inset 3px 0 0 var(--src-lost);
 .sbar .bp.hit { opacity: .9; }
 .bpchip { font-size: 10px; font-weight: 700; color: #ffd166; border: 1px solid #5c4a1a; border-radius: 999px; padding: 0 6px; margin-left: 4px; white-space: nowrap; }
 .bpchip.dim { color: var(--muted); border-color: var(--line); font-weight: 500; }
+.bpchip.hit { color: #ffd166; background: rgba(255, 209, 102, .12); border-color: #8a6d1f; }
 .sbar .cap { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #fff; opacity: .85; border-radius: 1px; }
 @media (max-width: 1100px) { .stat-cols { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 900px) {

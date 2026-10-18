@@ -2,4 +2,4 @@
 @tailwind components;
 @tailwind utilities;
 html, body, #root { height: 100%; margin: 0; }
-body { font-family: "Chakra Petch", system-ui, sans-serif; background: #fff; }
+body { font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; background: #0b0f14; color: #e6edf3; color-scheme: dark; }

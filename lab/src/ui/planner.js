@@ -430,6 +430,9 @@ function bpChip(r, bps = []) {
     const loss = v - curveValue(v, curve);
     out += ` <span class="bpchip dim" title="${esc(`${v} counts as ≈${(v - loss).toFixed(1)}: ${curve.map((b) => `above ${b.at} each point ≈${b.valueFactor.toFixed(2)}`).join('; ')} (community, ${past.confidence})`)}">&#8600; −${loss.toFixed(1)} eff.</span>`;
   }
+  // A threshold already reached stays visible (✓) instead of disappearing once you pass it.
+  const reached = bps.filter((b) => b.valueFactor == null && v >= b.at).sort((a, b) => b.at - a.at)[0];
+  if (reached) out += ` <span class="bpchip hit" title="${esc(`Reached: ${reached.label}: ${reached.effect} (community, ${reached.confidence})`)}">&#10003;${reached.at} ${esc(reached.label)}</span>`;
   const next = bps.filter((b) => b.at > v && b.at - v <= 3).sort((a, b) => a.at - b.at)[0];
   if (next) out += ` <span class="bpchip" title="${esc(`${next.label}: ${next.effect} (community, ${next.confidence})`)}">&#9670;${next.at} ${esc(next.label)}</span>`;
   return out;
