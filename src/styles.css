@@ -115,6 +115,8 @@ tr.pick:hover td { background: var(--panel-2); }
 .pickrow b { min-width: 26px; text-align: center; font-family: var(--mono); }
 button.small.on { border-color: var(--accent); color: var(--accent); }
 @media (max-width: 900px) { .g-roster { grid-template-columns: 1fr; } .rslot { font-size: 10px; } }
+.rbuild-head { display: flex; align-items: baseline; gap: 10px; margin: 22px 0 10px; padding-top: 16px; border-top: 1px solid var(--line); }
+.rbuild-hint { margin-top: 18px; font-size: 13px; }
 /* ---- Tier lists ---- */
 .tiergrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
 .trow { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--line); font-size: 13px; }

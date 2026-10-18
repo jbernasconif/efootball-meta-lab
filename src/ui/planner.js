@@ -93,10 +93,11 @@ function withExtraSkills(base, b) {
   return extra.length ? { ...base, skills: [...(base.skills ?? []), ...extra] } : base;
 }
 
-export function render(root, app) {
+// opts.embedded: rendered inside another page (Roster Builder) for opts.cardId, without the page title and search.
+export function render(root, app, opts = {}) {
   const { D } = app;
   const prog = D.progression;
-  const baseCard = app.card();
+  const baseCard = opts.cardId ? app.card(opts.cardId) : app.card();
   const b = app.build(baseCard);
   b.extraSkills ??= [null, null, null, null, null];
   const card = withExtraSkills(baseCard, b);
@@ -112,13 +113,13 @@ export function render(root, app) {
   const ovr = card.overall ?? card.positionRating;
 
   root.innerHTML = `
-  <div class="row" style="margin-bottom:14px">
+  ${opts.embedded ? '' : `<div class="row" style="margin-bottom:14px">
     <h1 style="margin:0">Build Planner</h1><span class="spacer"></span>
     <div class="search">
       <input placeholder="Search player… (${app.state.cards.length} cards)" value="${esc(ui.q)}" data-action="q" autocomplete="off">
       <div class="results" data-results></div>
     </div>
-  </div>
+  </div>`}
 
   <div class="card hero">
     <div class="ovr ${statColor(ovr)}">${esc(ovr ?? '–')}<small>${esc(card.position)}</small></div>
@@ -191,9 +192,11 @@ export function render(root, app) {
     results.innerHTML = hits.map((c) => `<div class="res" data-pick="${esc(c.id)}"><b>${esc(c.overall ?? '')}</b> ${esc(c.position)} · ${esc(c.name)} <span class="muted">${esc(c.playingStyle)} · ${c.progressionPoints} pts</span></div>`).join('') || '<div class="res muted">No match</div>';
     results.querySelectorAll('[data-pick]').forEach((el) => el.addEventListener('mousedown', () => { ui.q = ''; app.selectCard(el.dataset.pick); }));
   };
-  input.addEventListener('input', () => { ui.q = input.value; showResults(); });
-  input.addEventListener('blur', () => setTimeout(() => (results.innerHTML = ''), 150));
-  showResults();
+  if (input) {
+    input.addEventListener('input', () => { ui.q = input.value; showResults(); });
+    input.addEventListener('blur', () => setTimeout(() => (results.innerHTML = ''), 150));
+    showResults();
+  }
 
   root.querySelectorAll('[data-inc]').forEach((el) => el.addEventListener('click', () => { alloc[el.dataset.inc] = (alloc[el.dataset.inc] ?? 0) + 1; app.update(); }));
   root.querySelectorAll('[data-dec]').forEach((el) => el.addEventListener('click', () => { alloc[el.dataset.dec] = Math.max(0, (alloc[el.dataset.dec] ?? 0) - 1); app.update(); }));

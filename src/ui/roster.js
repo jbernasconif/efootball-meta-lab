@@ -1,12 +1,12 @@
 // Roster Builder: pick a formation and manager, place cards on the pitch, keep a bench, compare fit.
 import { esc } from './common.js';
-import { statColor } from './planner.js';
+import { statColor, render as renderBuild } from './planner.js';
 import { PLAYSTYLES } from './managers.js';
 import { POSITIONS } from '../engine/attributes.js';
 
 const LINE = { GK: 'gk', CB: 'def', LB: 'def', RB: 'def', DMF: 'mid', CMF: 'mid', LMF: 'mid', RMF: 'mid', AMF: 'mid', SS: 'att', CF: 'att', LWF: 'att', RWF: 'att' };
 const BENCH_MAX = 12;
-const ui = { slot: null, bench: false, q: '', pos: 'slot', mq: '' };
+const ui = { slot: null, bench: false, q: '', pos: 'slot', mq: '', focus: null };
 
 const uid = () => Math.random().toString(36).slice(2, 9);
 const clone = (x) => JSON.parse(JSON.stringify(x));
@@ -66,6 +66,10 @@ export function render(root, app) {
   const avg = placed.length ? placed.reduce((s, c) => s + (c.overall ?? 0), 0) / placed.length : 0;
   const fits = layout.map(([pos], i) => fitOf(pos, xiCards[i]));
   const selPos = ui.slot !== null ? layout[ui.slot]?.[0] : null;
+  // Player whose build is shown below: the selected pitch slot's player, otherwise the bench player chosen with 'Build'.
+  const inRoster = new Set([...r.xi, ...r.bench].filter(Boolean));
+  if (ui.focus && !inRoster.has(ui.focus)) ui.focus = null;
+  const focusId = (ui.slot !== null && r.xi[ui.slot]) || ui.focus;
   const Y = (y) => ((128 - y * 1.2) / 134) * 100;
 
   root.innerHTML = `
@@ -130,10 +134,13 @@ export function render(root, app) {
       <div class="card">
         <h2>Bench</h2>
         ${r.bench.length ? r.bench.map((id, k) => { const c = card(id); return c ? `<div class="trow"><span class="ctype ${c.cardType ?? ''}">${esc(c.position)}</span><b class="${statColor(c.overall ?? 0)}">${c.overall}</b><span>${esc(c.name)}</span><span class="muted" style="font-size:11px">${esc(c.playingStyle)}</span><span class="spacer"></span>
-          ${ui.slot !== null ? `<button class="small" data-swap="${k}">→ ${esc(selPos)}</button>` : ''}<button class="small" data-unbench="${k}">✕</button></div>` : ''; }).join('') : '<p class="muted" style="font-size:13px">No subs yet.</p>'}
+          <button class="small ${focusId === id ? 'on' : ''}" data-focus="${esc(id)}">Build</button>${ui.slot !== null ? `<button class="small" data-swap="${k}">→ ${esc(selPos)}</button>` : ''}<button class="small" data-unbench="${k}">✕</button></div>` : ''; }).join('') : '<p class="muted" style="font-size:13px">No subs yet.</p>'}
       </div>
     </div>
-  </div>`;
+  </div>
+  ${focusId ? `<div class="rbuild-head"><h2 style="margin:0">Build · ${esc(card(focusId)?.name ?? '')}</h2><span class="muted" style="font-size:12px">${xiCards.some((c) => c?.id === focusId) ? 'on the pitch' : 'on the bench'}</span></div><div data-build></div>`
+    : '<p class="muted rbuild-hint">Select a player on the pitch or press "Build" on a bench player to edit their build here.</p>'}`;
+  if (focusId) renderBuild(root.querySelector('[data-build]'), app, { embedded: true, cardId: focusId });
 
   const save = () => app.update();
   root.querySelector('[data-action=pick]').addEventListener('change', (e) => { st.current = e.target.value; ui.slot = null; save(); });
@@ -150,6 +157,7 @@ export function render(root, app) {
   root.querySelector('[data-action=clear]')?.addEventListener('click', () => { r.xi[ui.slot] = null; save(); });
   root.querySelector('[data-action=tobench]')?.addEventListener('click', () => { if (r.bench.length < BENCH_MAX) r.bench.push(r.xi[ui.slot]); r.xi[ui.slot] = null; save(); });
   root.querySelector('[data-action=toplanner]')?.addEventListener('click', () => { app.state.selectedCardId = r.xi[ui.slot]; app.save(); location.hash = '#/planner'; });
+  root.querySelectorAll('[data-focus]').forEach((el) => el.addEventListener('click', () => { ui.focus = el.dataset.focus; ui.slot = null; render(root, app); root.querySelector('[data-build]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
   root.querySelectorAll('[data-unbench]').forEach((el) => el.addEventListener('click', () => { r.bench.splice(Number(el.dataset.unbench), 1); save(); }));
   root.querySelectorAll('[data-swap]').forEach((el) => el.addEventListener('click', () => {
     const k = Number(el.dataset.swap);
@@ -229,6 +237,7 @@ function bindDrag(root, app, r, layout, rerender, save) {
         save();
       } else {
         ui.slot = ui.slot === i ? null : i;
+        if (ui.slot !== null && r.xi[i]) ui.focus = r.xi[i]; // keep showing this player's build
         ui.bench = false;
         rerender();
       }
