@@ -41,6 +41,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("file", nargs="?", type=Path)
     ap.add_argument("--push", action="store_true", help="commit and push league/public/data.json")
+    ap.add_argument("--yes", action="store_true", help="no questions (used by the local Save buttons)")
     args = ap.parse_args()
 
     src = args.file or newest_export()
@@ -59,7 +60,8 @@ def main() -> int:
     old = json.loads(TARGET.read_text(encoding="utf-8")).get("saved") if TARGET.exists() else None
     if old and payload.get("saved") and payload["saved"] < old:
         print(f"Warning: {src.name} ({payload['saved']}) is OLDER than the published data ({old}).")
-        if input("Publish it anyway? [y/N] ").strip().lower() != "y":
+        if args.yes or input("Publish it anyway? [y/N] ").strip().lower() != "y":
+            print("Not saved: it is older than the published data.")
             return 1
     TARGET.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     print(f"{src.name} -> league/public/data.json")

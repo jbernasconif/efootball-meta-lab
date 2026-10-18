@@ -643,6 +643,21 @@ function DataTransfer({ onClose }) {
     }
   }
 
+  // Sólo en local (npm run dev / "Abrir liga local.cmd"): el servidor de Vite escribe el export en
+  // league/public/data.json (sin PIN) y, si se pide, hace commit y push (vite.config.js → saveLeaguePlugin).
+  async function saveToProject(publish) {
+    setBusy(true);
+    setMsg(publish ? "Saving and publishing…" : "Saving to the project…");
+    try {
+      const res = await fetch(publish ? "/__league/publish" : "/__league/save", { method: "POST", body: dump });
+      const out = await res.json();
+      setMsg(out.message || (res.ok ? "Saved." : "Could not save."));
+    } catch (e) {
+      setMsg("Could not reach the local server. Open the league with \"Abrir liga local.cmd\".");
+    }
+    setBusy(false);
+  }
+
   function copy() {
     const el = areaRef.current;
     if (!el) return;
@@ -698,6 +713,21 @@ function DataTransfer({ onClose }) {
               Everything: clubs, tournaments, archive, league, draft. Load it into the shareable HTML file with its
               Import button, or back into this app below.
             </p>
+            {import.meta.env.DEV && (
+              <div className="flex items-center gap-2 flex-wrap mb-3">
+                <button onClick={() => saveToProject(false)} disabled={busy}
+                        style={{ background: busy ? TOKENS.line : TOKENS.gold, color: TOKENS.ink }}
+                        className="text-xs font-bold uppercase tracking-wide px-3 py-2 rounded">
+                  Guardar en el proyecto
+                </button>
+                <button onClick={() => saveToProject(true)} disabled={busy}
+                        style={{ background: busy ? TOKENS.line : TOKENS.ink, color: TOKENS.gold }}
+                        className="text-xs font-bold uppercase tracking-wide px-3 py-2 rounded">
+                  Guardar y publicar
+                </button>
+                <span style={{ color: TOKENS.muted }} className="text-xs">sólo en local · sin PIN</span>
+              </div>
+            )}
             <div className="flex items-center gap-2 flex-wrap mb-2">
               <button onClick={download} disabled={busy}
                       style={{ background: busy ? TOKENS.line : TOKENS.gold, color: TOKENS.ink }}
@@ -1120,7 +1150,9 @@ export default function LeagueApp() {
               { label: "Jugadores", key: "players", live: true },
               { label: "Reglas", key: "rules", live: true },
               // Meta Lab (build planner, jugadores de eFHUB, skills) vive en el mismo sitio, en ./lab/.
-              { label: "Meta Lab ↗", key: "metalab", live: true, href: "./lab/" },
+              // En local (npm run dev) ./lab/ no existe: se abre el Meta Lab publicado.
+              { label: "Meta Lab ↗", key: "metalab", live: true,
+                href: import.meta.env.DEV ? "https://jbernasconif.github.io/efootball-meta-lab/lab/" : "./lab/" },
             ].map((tab) => {
               const active = page === tab.key;
               return (
@@ -1579,7 +1611,12 @@ function leagueAsRecords(rec) {
   if (!rec || !rec.season) return [];
   const out = [];
   const results = rec.results || {};
-  const table = computeLeagueTable(results).filter((r) => r.pj > 0);
+  // Con el calendario y los clubes de ESA liga, no los de la liga en curso: los ids de los
+  // partidos son posicionales y una liga de 8 clubes leída con el calendario de 9 descoloca
+  // los resultados (Al-Haramball salía 8º de la liga que ganó).
+  // Igual que ArchivedLeagueView.
+  const cfg = rec.config || { teams: [...LEAGUE_DEFAULT_TEAMS], rounds: LEAGUE_DEFAULT_ROUNDS };
+  const table = computeLeagueTable(results, leagueScheduleFor(cfg), cfg.teams || []).filter((r) => r.pj > 0);
   const total = rec.total || 0;
   const leagueDone = rec.finished || (total > 0 && (rec.played || 0) >= total);
 
