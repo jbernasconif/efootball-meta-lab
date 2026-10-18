@@ -1,0 +1,153 @@
+{
+ "schema": "efml.tiers",
+ "version": "1.0.0",
+ "public": true,
+ "note": "Public build: tier lists are linked, not copied. Run tools/build_tiers.py locally for the full in-app version.",
+ "links": [
+  {
+   "site": "game8.jp",
+   "items": [
+    {
+     "title": "Player ranking · CF",
+     "url": "https://game8.jp/efootball/488673",
+     "date": "2026-10-15"
+    },
+    {
+     "title": "Player ranking · ST",
+     "url": "https://game8.jp/efootball/488682",
+     "date": "2026-10-12"
+    },
+    {
+     "title": "Player ranking · LWG",
+     "url": "https://game8.jp/efootball/488685",
+     "date": "2026-10-15"
+    },
+    {
+     "title": "Player ranking · RWG",
+     "url": "https://game8.jp/efootball/488733",
+     "date": "2026-10-15"
+    },
+    {
+     "title": "Player ranking · LMF",
+     "url": "https://game8.jp/efootball/493464",
+     "date": "2026-10-15"
+    },
+    {
+     "title": "Player ranking · RMF",
+     "url": "https://game8.jp/efootball/494855",
+     "date": "2026-10-15"
+    },
+    {
+     "title": "Player ranking · OMF",
+     "url": "https://game8.jp/efootball/488734",
+     "date": "2026-10-15"
+    },
+    {
+     "title": "Player ranking · CMF",
+     "url": "https://game8.jp/efootball/488833",
+     "date": "2026-10-15"
+    },
+    {
+     "title": "Player ranking · DMF",
+     "url": "https://game8.jp/efootball/488849",
+     "date": "2026-10-15"
+    },
+    {
+     "title": "Player ranking · LSB",
+     "url": "https://game8.jp/efootball/492916",
+     "date": "2026-10-15"
+    },
+    {
+     "title": "Player ranking · RSB",
+     "url": "https://game8.jp/efootball/492917",
+     "date": "2026-10-15"
+    },
+    {
+     "title": "Player ranking · CB",
+     "url": "https://game8.jp/efootball/488872",
+     "date": "2026-10-15"
+    },
+    {
+     "title": "Player ranking · GK",
+     "url": "https://game8.jp/efootball/492921",
+     "date": "2026-10-15"
+    },
+    {
+     "title": "Formation tier list",
+     "url": "https://game8.jp/efootball/480663",
+     "date": "2026-09-16"
+    },
+    {
+     "title": "Manager ranking",
+     "url": "https://game8.jp/efootball/477527",
+     "date": "2026-10-15"
+    },
+    {
+     "title": "Build guide · Kylian Mbappe",
+     "url": "https://game8.jp/efootball/802602",
+     "date": "2026-10-16"
+    },
+    {
+     "title": "Build guide · Alessandro Del Piero",
+     "url": "https://game8.jp/efootball/816580",
+     "date": "2026-10-16"
+    },
+    {
+     "title": "Build guide · Julian Alvarez",
+     "url": "https://game8.jp/efootball/769300",
+     "date": "2026-10-16"
+    },
+    {
+     "title": "Build guide · Lionel Messi",
+     "url": "https://game8.jp/efootball/801883",
+     "date": "2026-10-16"
+    },
+    {
+     "title": "Build guide · Rodri",
+     "url": "https://game8.jp/efootball/799892",
+     "date": "2026-10-16"
+    },
+    {
+     "title": "Build guide · Patrick Vieira",
+     "url": "https://game8.jp/efootball/796349",
+     "date": "2026-10-16"
+    },
+    {
+     "title": "Build guide · Alessandro Nesta",
+     "url": "https://game8.jp/efootball/811098",
+     "date": "2026-10-16"
+    },
+    {
+     "title": "Build guide · Ronald Araujo",
+     "url": "https://game8.jp/efootball/815191",
+     "date": "2026-10-16"
+    },
+    {
+     "title": "Build guide · Petr Cech",
+     "url": "https://game8.jp/efootball/813950",
+     "date": "2026-10-16"
+    }
+   ]
+  },
+  {
+   "site": "r/Amadeusz",
+   "items": [
+    {
+     "title": "META players by position (Top 3 / Top 5 / Top 10)",
+     "url": "https://www.reddit.com/r/Amadeusz/s/gxOOxYukc5",
+     "date": "2026-05-31"
+    },
+    {
+     "title": "Showtime skills",
+     "url": "https://docs.google.com/spreadsheets/d/1A33zBtq6cVTghg6ytROST6k70SRMSFoOxEkSvdXSeRk/htmlview",
+     "date": "2025–2026"
+    },
+    {
+     "title": "Link Up (centerpiece → key man · example manager)",
+     "url": "https://www.reddit.com/r/Amadeusz/s/qONaUQjR0V",
+     "date": "2026"
+    }
+   ]
+  }
+ ]
+}

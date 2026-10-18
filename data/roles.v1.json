@@ -1,0 +1,102 @@
+{
+  "schema": "efml.roles",
+  "version": "1.0.0",
+  "status": "hypothesis",
+  "note": "Stat weights per role and skill activation frequencies are editable HYPOTHESES, not empirical evidence. They make the optimizer reproducible and explainable.",
+  "positionGroup": {
+    "GK": "GK", "CB": "CB", "LB": "FB", "RB": "FB", "DMF": "DM", "CMF": "CM", "LMF": "WM", "RMF": "WM",
+    "AMF": "AM", "LWF": "W", "RWF": "W", "SS": "AM", "CF": "ST"
+  },
+  "profiles": {
+    "CB": {
+      "auto": { "defensiveAwareness": 1, "tackling": 1, "defensiveEngagement": 0.9, "aggression": 0.8, "physicalContact": 0.9, "jump": 0.7, "heading": 0.6, "speed": 0.8, "acceleration": 0.7, "ballControl": 0.3, "lowPass": 0.3, "stamina": 0.3 },
+      "meta": { "speed": 1, "acceleration": 1, "physicalContact": 1, "defensiveAwareness": 0.9, "tackling": 0.8, "defensiveEngagement": 0.8, "aggression": 0.6, "jump": 0.6, "heading": 0.4, "stamina": 0.3 },
+      "tactical": {
+        "Stopper (Destroyer)": { "aggression": 1, "tackling": 1, "defensiveEngagement": 1, "physicalContact": 0.9, "acceleration": 0.8, "speed": 0.6, "defensiveAwareness": 0.7 },
+        "Ball-playing (Build Up)": { "lowPass": 1, "loftedPass": 0.8, "ballControl": 0.8, "defensiveAwareness": 0.9, "tackling": 0.7, "speed": 0.6, "physicalContact": 0.6 },
+        "Aerial": { "heading": 1, "jump": 1, "physicalContact": 1, "defensiveAwareness": 0.8, "tackling": 0.6 }
+      }
+    },
+    "FB": {
+      "auto": { "speed": 1, "acceleration": 1, "stamina": 0.8, "defensiveAwareness": 0.8, "tackling": 0.7, "defensiveEngagement": 0.7, "lowPass": 0.6, "loftedPass": 0.6, "dribbling": 0.5, "ballControl": 0.5, "physicalContact": 0.4 },
+      "meta": { "speed": 1, "acceleration": 1, "stamina": 0.9, "physicalContact": 0.6, "defensiveEngagement": 0.7, "tackling": 0.6, "loftedPass": 0.6, "lowPass": 0.6 },
+      "tactical": {
+        "Attacking full-back": { "speed": 1, "acceleration": 1, "loftedPass": 1, "lowPass": 0.8, "dribbling": 0.8, "stamina": 1, "curl": 0.5 },
+        "Defensive full-back": { "defensiveAwareness": 1, "tackling": 1, "defensiveEngagement": 0.9, "speed": 0.8, "physicalContact": 0.7, "aggression": 0.7 }
+      }
+    },
+    "DM": {
+      "auto": { "defensiveAwareness": 1, "tackling": 0.9, "defensiveEngagement": 0.9, "aggression": 0.7, "lowPass": 0.8, "ballControl": 0.6, "physicalContact": 0.8, "stamina": 0.8, "speed": 0.5, "acceleration": 0.5 },
+      "meta": { "physicalContact": 1, "defensiveAwareness": 0.9, "tackling": 0.9, "defensiveEngagement": 0.9, "stamina": 0.9, "speed": 0.7, "acceleration": 0.7, "lowPass": 0.7 },
+      "tactical": {
+        "Ball winner": { "tackling": 1, "aggression": 1, "defensiveEngagement": 1, "physicalContact": 1, "stamina": 0.8 },
+        "Deep playmaker": { "lowPass": 1, "loftedPass": 0.9, "ballControl": 0.8, "defensiveAwareness": 0.8, "offensiveAwareness": 0.5 }
+      }
+    },
+    "CM": {
+      "auto": { "lowPass": 1, "loftedPass": 0.8, "ballControl": 0.8, "dribbling": 0.6, "tightPossession": 0.6, "stamina": 0.9, "offensiveAwareness": 0.7, "defensiveAwareness": 0.6, "physicalContact": 0.6, "speed": 0.5, "acceleration": 0.6 },
+      "meta": { "stamina": 1, "physicalContact": 0.9, "lowPass": 0.9, "acceleration": 0.8, "speed": 0.8, "ballControl": 0.7, "defensiveEngagement": 0.6, "tackling": 0.5 },
+      "tactical": {
+        "Box to Box": { "stamina": 1, "physicalContact": 0.9, "defensiveAwareness": 0.8, "tackling": 0.7, "offensiveAwareness": 0.7, "speed": 0.7 },
+        "Creator": { "lowPass": 1, "loftedPass": 1, "ballControl": 0.9, "tightPossession": 0.8, "offensiveAwareness": 0.8, "curl": 0.5 }
+      }
+    },
+    "WM": {
+      "auto": { "speed": 1, "acceleration": 1, "dribbling": 0.8, "ballControl": 0.7, "loftedPass": 0.7, "lowPass": 0.6, "stamina": 0.8, "offensiveAwareness": 0.6, "curl": 0.5 },
+      "meta": { "speed": 1, "acceleration": 1, "stamina": 0.9, "dribbling": 0.8, "ballControl": 0.7, "physicalContact": 0.6, "loftedPass": 0.6 },
+      "tactical": {
+        "Crossing winger": { "loftedPass": 1, "curl": 0.8, "speed": 0.9, "acceleration": 0.8, "stamina": 0.8 },
+        "Inside midfielder": { "lowPass": 1, "ballControl": 0.9, "tightPossession": 0.8, "dribbling": 0.8, "offensiveAwareness": 0.7 }
+      }
+    },
+    "AM": {
+      "auto": { "offensiveAwareness": 0.9, "ballControl": 1, "dribbling": 0.9, "tightPossession": 0.9, "lowPass": 0.9, "finishing": 0.8, "acceleration": 0.8, "speed": 0.6, "balance": 0.6, "curl": 0.5 },
+      "meta": { "acceleration": 1, "speed": 0.9, "ballControl": 0.9, "dribbling": 0.9, "finishing": 0.8, "offensiveAwareness": 0.8, "physicalContact": 0.6, "balance": 0.6 },
+      "tactical": {
+        "Goalscoring 10": { "finishing": 1, "offensiveAwareness": 1, "kickingPower": 0.7, "acceleration": 0.8, "ballControl": 0.7 },
+        "Classic 10": { "lowPass": 1, "loftedPass": 0.8, "ballControl": 1, "tightPossession": 0.9, "curl": 0.6 }
+      }
+    },
+    "W": {
+      "auto": { "speed": 1, "acceleration": 1, "dribbling": 1, "ballControl": 0.8, "tightPossession": 0.8, "finishing": 0.8, "offensiveAwareness": 0.8, "balance": 0.6, "curl": 0.5 },
+      "meta": { "speed": 1, "acceleration": 1, "dribbling": 0.9, "finishing": 0.9, "offensiveAwareness": 0.8, "balance": 0.7, "physicalContact": 0.6, "kickingPower": 0.5 },
+      "tactical": {
+        "Dribbling winger": { "dribbling": 1, "tightPossession": 1, "ballControl": 0.9, "balance": 0.8, "acceleration": 1 },
+        "Inside forward": { "finishing": 1, "curl": 0.9, "offensiveAwareness": 0.9, "kickingPower": 0.7, "speed": 0.8 }
+      }
+    },
+    "ST": {
+      "auto": { "finishing": 1, "offensiveAwareness": 1, "kickingPower": 0.8, "speed": 0.8, "acceleration": 0.9, "ballControl": 0.7, "dribbling": 0.6, "physicalContact": 0.7, "heading": 0.5, "jump": 0.4, "balance": 0.5 },
+      "meta": { "speed": 1, "acceleration": 1, "finishing": 1, "offensiveAwareness": 0.9, "physicalContact": 0.8, "kickingPower": 0.7, "balance": 0.6 },
+      "tactical": {
+        "Box finisher": { "finishing": 1, "offensiveAwareness": 1, "heading": 0.9, "jump": 0.8, "physicalContact": 0.8 },
+        "Runner in behind": { "speed": 1, "acceleration": 1, "offensiveAwareness": 0.9, "finishing": 0.9, "dribbling": 0.6 }
+      }
+    },
+    "GK": {
+      "auto": { "gkAwareness": 1, "gkCatching": 0.9, "gkParrying": 0.9, "gkReflexes": 1, "gkReach": 1, "jump": 0.6, "lowPass": 0.2, "loftedPass": 0.2 },
+      "meta": { "gkReflexes": 1, "gkReach": 1, "gkAwareness": 0.9, "gkParrying": 0.9, "gkCatching": 0.7, "jump": 0.6 },
+      "tactical": {
+        "Sweeper keeper": { "gkAwareness": 1, "gkReach": 0.9, "gkReflexes": 0.9, "lowPass": 0.6, "speed": 0.4 },
+        "Line keeper": { "gkReflexes": 1, "gkParrying": 1, "gkCatching": 0.9, "gkReach": 0.9 }
+      }
+    }
+  },
+  "defaultFrequencies": {
+    "status": "hypothesis",
+    "note": "Estimated share of relevant time/actions in which the skill is active. No empirical evidence: editable.",
+    "values": {
+      "fortress": 0.3, "super_sub": 0.0, "momentum_dribbling": 0.15, "attacking_surge": 0.2, "shadow_hunt": 0.05,
+      "attack_trigger": 0.25, "aerial_fort": 0.05, "gk_directing_defence": 0.3, "gk_spirit_roar": 0.2,
+      "game_changing_pass": 0.35, "magnetic_feet": 0.25
+    }
+  },
+  "optimizer": {
+    "status": "hypothesis",
+    "magneticFeetOpponents": 2,
+    "magneticFeetNote": "Nearby opponents assumed while Magnetic Feet is active (HYPOTHESIS).",
+    "exclusiveStates": [["fortress", "game_changing_pass"], ["momentum_dribbling", "attacking_surge"]],
+    "exclusiveNote": "Fortress (winning) and Game-changing Pass (level/losing) exclude each other by score; Momentum and Surge by possession (documented ST02).",
+    "lookahead": 4
+  }
+}

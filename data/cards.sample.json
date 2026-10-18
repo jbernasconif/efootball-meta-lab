@@ -1,0 +1,39 @@
+{
+  "schema": "efml.cards",
+  "version": "1.0.0",
+  "note": "FICTIONAL DEMO CARDS. Not eFHUB or Konami data. Used to try the app until real cards are imported.",
+  "cards": [
+    {
+      "id": "demo-cb-01", "name": "Demo Centre-back", "version": "Fictional · Standard", "cardType": "standard", "fictional": true,
+      "position": "CB", "positionRating": 86, "overall": 86, "playingStyle": "Destroyer", "foot": "right", "height": 190,
+      "weakFootUsage": "Rarely", "weakFootAccuracy": "Medium", "progressionPoints": 40,
+      "stats": { "offensiveAwareness": 55, "ballControl": 66, "dribbling": 60, "tightPossession": 58, "lowPass": 70, "loftedPass": 66, "finishing": 45, "heading": 80, "placeKicking": 50, "curl": 52, "defensiveAwareness": 86, "defensiveEngagement": 84, "tackling": 85, "aggression": 82, "gkAwareness": 40, "gkCatching": 40, "gkParrying": 40, "gkReflexes": 40, "gkReach": 40, "speed": 74, "acceleration": 70, "kickingPower": 72, "jump": 80, "physicalContact": 86, "balance": 62, "stamina": 76 },
+      "skills": ["Fortress", "Heading", "Interception", "Man Marking"],
+      "source": { "site": "demo", "method": "fictional" }
+    },
+    {
+      "id": "demo-cf-01", "name": "Demo Striker", "version": "Fictional · Featured", "cardType": "featured", "fictional": true,
+      "position": "CF", "positionRating": 88, "overall": 88, "playingStyle": "Goal Poacher", "foot": "left", "height": 181,
+      "weakFootUsage": "Occasionally", "weakFootAccuracy": "High", "progressionPoints": 46,
+      "stats": { "offensiveAwareness": 87, "ballControl": 80, "dribbling": 79, "tightPossession": 78, "lowPass": 70, "loftedPass": 64, "finishing": 86, "heading": 72, "placeKicking": 60, "curl": 70, "defensiveAwareness": 42, "defensiveEngagement": 45, "tackling": 44, "aggression": 55, "gkAwareness": 40, "gkCatching": 40, "gkParrying": 40, "gkReflexes": 40, "gkReach": 40, "speed": 84, "acceleration": 86, "kickingPower": 82, "jump": 70, "physicalContact": 74, "balance": 78, "stamina": 74 },
+      "skills": ["Momentum Dribbling", "Phenomenal Finishing", "Magnetic Feet", "First-time Shot", "Heading"],
+      "source": { "site": "demo", "method": "fictional" }
+    },
+    {
+      "id": "demo-cmf-01", "name": "Demo Midfielder", "version": "Fictional · Epic", "cardType": "epic", "fictional": true,
+      "position": "CMF", "positionRating": 90, "overall": 90, "playingStyle": "Orchestrator", "foot": "right", "height": 176,
+      "weakFootUsage": "Regularly", "weakFootAccuracy": "High", "progressionPoints": 30,
+      "stats": { "offensiveAwareness": 80, "ballControl": 88, "dribbling": 82, "tightPossession": 86, "lowPass": 90, "loftedPass": 88, "finishing": 70, "heading": 58, "placeKicking": 80, "curl": 82, "defensiveAwareness": 66, "defensiveEngagement": 68, "tackling": 62, "aggression": 60, "gkAwareness": 40, "gkCatching": 40, "gkParrying": 40, "gkReflexes": 40, "gkReach": 40, "speed": 72, "acceleration": 76, "kickingPower": 78, "jump": 60, "physicalContact": 66, "balance": 80, "stamina": 84 },
+      "skills": ["Visionary Pass", "Game-changing Pass", "Attack Trigger", "Phenomenal Pass", "One-touch Pass"],
+      "source": { "site": "demo", "method": "fictional" }
+    },
+    {
+      "id": "demo-gk-01", "name": "Demo Goalkeeper", "version": "Fictional · Standard", "cardType": "standard", "fictional": true,
+      "position": "GK", "positionRating": 84, "overall": 84, "playingStyle": "Defensive Goalkeeper", "foot": "right", "height": 192,
+      "weakFootUsage": "Rarely", "weakFootAccuracy": "Low", "progressionPoints": 36,
+      "stats": { "offensiveAwareness": 40, "ballControl": 55, "dribbling": 45, "tightPossession": 42, "lowPass": 66, "loftedPass": 68, "finishing": 40, "heading": 45, "placeKicking": 60, "curl": 50, "defensiveAwareness": 40, "defensiveEngagement": 40, "tackling": 40, "aggression": 45, "gkAwareness": 84, "gkCatching": 80, "gkParrying": 82, "gkReflexes": 85, "gkReach": 83, "speed": 55, "acceleration": 58, "kickingPower": 80, "jump": 78, "physicalContact": 74, "balance": 55, "stamina": 60 },
+      "skills": ["GK Directing Defence", "GK Spirit Roar", "GK Long Throw"],
+      "source": { "site": "demo", "method": "fictional" }
+    }
+  ]
+}

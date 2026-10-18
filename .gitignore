@@ -1,0 +1,14 @@
+# Scraper working files and logs
+out/
+*.tmp
+__pycache__/
+
+# Research notes (contain transcribed third-party content)
+research/
+
+# Third-party editorial content: kept local, linked in the public build
+data/tiers.v1.json
+data/img/
+
+# Local tooling
+.claude/

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tests · eFootball Meta Lab</title>
+  <style>
+    body { background: #0d1117; color: #e6edf3; font: 14px/1.5 system-ui, sans-serif; margin: 0; padding: 24px; }
+    h1 { font-size: 18px; margin: 0 0 12px; }
+    .sum { margin-bottom: 16px; font-weight: 600; }
+    .ok { color: #3fb950; } .ko { color: #f85149; }
+    li { list-style: none; padding: 3px 0; border-bottom: 1px solid #21262d; }
+    ul { padding: 0; } small { color: #8b949e; display: block; margin-left: 22px; }
+  </style>
+</head>
+<body>
+  <h1>Automated tests — numeric cases from the article</h1>
+  <div class="sum" id="sum">Running…</div>
+  <ul id="list"></ul>
+  <script type="module">
+    import { loadAll } from '../src/data/loader.js';
+    import { run } from './harness.js';
+    import { register } from './engine.test.js';
+    try {
+      const D = await loadAll('../');
+      register(D);
+      const results = await run();
+      window.__TEST_RESULTS__ = results;
+      const pass = results.filter((r) => r.ok).length;
+      document.getElementById('sum').innerHTML = `<span class="${pass === results.length ? 'ok' : 'ko'}">${pass}/${results.length} tests passed</span>`;
+      document.getElementById('list').innerHTML = results.map((r) =>
+        `<li><span class="${r.ok ? 'ok' : 'ko'}">${r.ok ? '✔' : '✘'}</span> ${r.name}${r.ok ? '' : `<small>${r.error}</small>`}</li>`).join('');
+    } catch (e) {
+      window.__TEST_RESULTS__ = [{ name: 'load', ok: false, error: e.message }];
+      document.getElementById('sum').innerHTML = `<span class="ko">Error: ${e.message}</span>`;
+    }
+  </script>
+</body>
+</html>

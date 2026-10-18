@@ -1,0 +1,34 @@
+{
+  "schema": "efml.progression",
+  "version": "1.1.0",
+  "status": "verified",
+  "note": "Verified in the eFHUB Player Builder on 2026-10-18 (card 110718, 42 points): each of the 10 categories gives exactly +1 per level to the listed stats, and levels 1–16 cost 1/2/3/4 points (4 levels per tier). The cost from level 17 (5 points) was NOT observed (budget too small) and remains an assumption.",
+  "verification": {
+    "date": "2026-10-18",
+    "source": "https://efhub.com/players/110718",
+    "categoriesVerified": ["shooting", "passing", "dribbling", "dexterity", "lowerBody", "aerial", "defending", "gk1", "gk2", "gk3"],
+    "costLevelsVerified": [1, 16],
+    "costLevelsUnverified": "17+"
+  },
+  "categories": [
+    { "id": "shooting", "label": "Shooting", "attrs": ["finishing", "placeKicking", "curl"] },
+    { "id": "passing", "label": "Passing", "attrs": ["lowPass", "loftedPass"] },
+    { "id": "dribbling", "label": "Dribbling", "attrs": ["ballControl", "dribbling", "tightPossession"] },
+    { "id": "dexterity", "label": "Dexterity", "attrs": ["offensiveAwareness", "acceleration", "balance"] },
+    { "id": "lowerBody", "label": "Lower Body Strength", "attrs": ["speed", "kickingPower", "stamina"] },
+    { "id": "aerial", "label": "Aerial Strength", "attrs": ["heading", "jump", "physicalContact"] },
+    { "id": "defending", "label": "Defending", "attrs": ["defensiveAwareness", "tackling", "aggression", "defensiveEngagement"] },
+    { "id": "gk1", "label": "GK 1", "attrs": ["gkAwareness", "jump"] },
+    { "id": "gk2", "label": "GK 2", "attrs": ["gkParrying", "gkReach"] },
+    { "id": "gk3", "label": "GK 3", "attrs": ["gkCatching", "gkReflexes"] }
+  ],
+  "costByLevel": [
+    { "fromLevel": 1, "toLevel": 4, "cost": 1 },
+    { "fromLevel": 5, "toLevel": 8, "cost": 2 },
+    { "fromLevel": 9, "toLevel": 12, "cost": 3 },
+    { "fromLevel": 13, "toLevel": 16, "cost": 4 },
+    { "fromLevel": 17, "toLevel": 99, "cost": 5 }
+  ],
+  "increasePerLevel": 1,
+  "maxLevelPerCategory": null
+}
