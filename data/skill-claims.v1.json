@@ -1,37 +1,218 @@
 {
  "schema": "efml.skillClaims",
- "version": "1.0.0",
+ "version": "1.1.0",
  "status": "community",
  "source": {
-  "title": "eFootball Reverse Engineering Community Archive — Attribute engine & skill mechanics (4 slides)",
+  "title": "eFootball Reverse Engineering Community Archive — Attribute engine, spatial geometry & skill mechanics (4 slides)",
   "researcher": "wyzzzzzzz",
   "target": "libUE4.so (ARM64) · NetEase v11.0.0 · SHA256 2ea6b0b56bb59042…",
   "received": "2026-10-18 (screenshots shared by the user)",
   "note": "Community disassembly claims, not independently verified here. Shown next to the article rules; the engine only uses them as info (action bonuses are never added to Final or to the optimizer)."
  },
  "pipeline": {
-  "stages": ["Base card stat", "Condition arrow (interpolated by OVR, not a flat %)", "Manager (fixed DT reference table)", "In-match skills (clamped 40–99)", "Boosters (post-clamp) & action modifiers"],
+  "stages": [
+   "Base card stat",
+   "Condition arrow (interpolated by OVR, not a flat %)",
+   "Manager (fixed DT reference table)",
+   "In-match skills (clamped 40–99)",
+   "Boosters (post-clamp) & action modifiers"
+  ],
   "claims": [
-   { "topic": "Action ceiling", "claim": "Effective ceiling 127 for action-local values.", "check": "differs", "vsEngine": "Engine: boosters up to 120; local (action) bonus not capped. The 127 ceiling is not used." },
-   { "topic": "Manager table", "claim": "DT 88: stats 40–55 +1, 56–83 +2, 84–99 +3.", "check": "partly", "vsEngine": "These bands match the eFHUB-measured table at proficiency 89. At 88 eFHUB gives 40–56 +1, 57–84 +2, 85–99 +3." },
-   { "topic": "Manager vs skills", "claim": "Independent systems: in-match skill buffs do not recalculate the manager bonus.", "check": "agrees", "vsEngine": "Same as the article (manager uses the reference value before skills)." }
+   {
+    "topic": "Action ceiling",
+    "claim": "Effective ceiling 127 for action-local values.",
+    "check": "differs",
+    "vsEngine": "Engine: boosters up to 120; local (action) bonus not capped. The 127 ceiling is not used."
+   },
+   {
+    "topic": "Manager table",
+    "claim": "DT 88: stats 40–55 +1, 56–83 +2, 84–99 +3.",
+    "check": "partly",
+    "vsEngine": "These bands match the eFHUB-measured table at proficiency 89. At 88 eFHUB gives 40–56 +1, 57–84 +2, 85–99 +3."
+   },
+   {
+    "topic": "Manager vs skills",
+    "claim": "Independent systems: in-match skill buffs do not recalculate the manager bonus.",
+    "check": "agrees",
+    "vsEngine": "Same as the article (manager uses the reference value before skills)."
+   }
   ]
  },
  "skills": [
-  { "id": "super_sub", "name": "Super-sub", "slideId": "ID 26", "hypothesis": "Raises the condition arrow one tier or adds a flat +10%.", "finding": "Flat +1 to 25 core match stats, independent of condition arrows. Stamina excluded.", "type": "stat", "check": "agrees" },
-  { "id": "blitz_curler", "name": "Blitz Curler", "slideId": "Show Time", "hypothesis": "Adds raw Curl or Finishing, clamped at 99.", "finding": "Finesse shot at 50%+ power and ≤35 m: launch angle +3.87° / +6.77° plus topspin. Not affected by the 99 cap (no stat change).", "type": "physics", "check": "agrees" },
-  { "id": "momentum_dribbling", "name": "Momentum Dribbling", "slideId": "ID 47", "hypothesis": "Only inside the attacking box or final third.", "finding": "Activates 18 m past the halfway line; +6 Dribbling, Tight Possession, Speed and Acceleration across the full pitch width.", "type": "stat", "check": "agrees" },
-  { "id": "phenomenal_finishing", "name": "Phenomenal Finishing", "slideId": "ID 44", "hypothesis": "Ignores body balance or permanently buffs Finishing.", "finding": "In awkward postures injects +7 local Finishing: a 99 player shoots with an effective 106.", "type": "local", "action": { "attrs": ["finishing"], "flat": 7, "label": "Special shooting motions" }, "check": "agrees" },
-  { "id": "visionary_pass", "name": "Visionary Pass", "slideId": "Show Time", "hypothesis": "Laser auto-assist with 100% accuracy ignoring body balance.", "finding": "+6 local ability: tags the ball for the receiver's next action.", "type": "local", "check": "agrees" },
-  { "id": "phenomenal_pass", "name": "Phenomenal Pass", "slideId": "Show Time", "hypothesis": "Laser auto-assist with 100% accuracy ignoring body balance.", "finding": "+6 local ability; boosts off-balance passes.", "type": "local", "check": "agrees" },
-  { "id": "fighting_spirit", "name": "Fighting Spirit", "slideId": "ID 27", "hypothesis": "Inactive until the stamina bar flashes red late in the match.", "finding": "Active all 90 min: multiplies pressure penalties by 0.8 (−20%) and delays running-exhaustion drop-offs.", "type": "system", "check": "agrees" },
-  { "id": "acceleration_burst", "name": "Acceleration Burst (Edge Turn)", "slideId": "ID 55", "hypothesis": "Adds +10 to Speed or Acceleration.", "finding": "+0.1 tight-control coefficient at speed < 20 and a 1.025 config multiplier (internal parameter). No stat change.", "type": "physics", "check": "agrees" },
-  { "id": "bullet_header", "name": "Bullet Header", "slideId": "ID 53", "hypothesis": "Adds raw points to Heading or Jump.", "finding": "Exit-velocity upper bound +4.0 km/h and tighter dispersion. Stacks with standard Heading (+5 local).", "type": "physics", "check": "agrees" },
-  { "id": "fortress", "name": "Fortress", "slideId": "ID 46", "hypothesis": "Placebo or a magical goal barrier.", "finding": "Leading in the 2nd half / extra time: flat +6 to Defensive Awareness, Tackling, Defensive Engagement and Aggression.", "type": "stat", "check": "agrees" },
-  { "id": "magnetic_feet", "name": "Magnetic Feet", "slideId": "slide 1", "hypothesis": "", "finding": "Temporary stat buff +2 to +8 (match stat, capped at 99).", "type": "stat", "check": "agrees" }
+  {
+   "id": "super_sub",
+   "name": "Super-sub",
+   "slideId": "ID 26",
+   "hypothesis": "Raises the condition arrow one tier or adds a flat +10%.",
+   "finding": "Flat +1 to 25 core match stats, independent of condition arrows. Stamina excluded.",
+   "type": "stat",
+   "check": "agrees"
+  },
+  {
+   "id": "blitz_curler",
+   "name": "Blitz Curler",
+   "slideId": "Show Time",
+   "hypothesis": "Adds raw Curl or Finishing, clamped at 99.",
+   "finding": "Finesse shot at 50%+ power and ≤35 m: launch angle +3.87° / +6.77° plus topspin. Not affected by the 99 cap (no stat change).",
+   "type": "physics",
+   "check": "agrees"
+  },
+  {
+   "id": "momentum_dribbling",
+   "name": "Momentum Dribbling",
+   "slideId": "ID 47 · slide 2",
+   "hypothesis": "Only inside the attacking box or final third.",
+   "finding": "Momentum zone past the +18 m line (18.14 m before the penalty box, box front at +36.14 m): +6 Dribbling, Tight Possession, Speed and Acceleration across the full pitch width.",
+   "type": "stat",
+   "check": "agrees"
+  },
+  {
+   "id": "phenomenal_finishing",
+   "name": "Phenomenal Finishing",
+   "slideId": "ID 44",
+   "hypothesis": "Ignores body balance or permanently buffs Finishing.",
+   "finding": "In awkward postures injects +7 local Finishing: a 99 player shoots with an effective 106.",
+   "type": "local",
+   "action": {
+    "attrs": [
+     "finishing"
+    ],
+    "flat": 7,
+    "label": "Special shooting motions"
+   },
+   "check": "agrees"
+  },
+  {
+   "id": "visionary_pass",
+   "name": "Visionary Pass",
+   "slideId": "Show Time",
+   "hypothesis": "Laser auto-assist with 100% accuracy ignoring body balance.",
+   "finding": "+6 local ability: tags the ball for the receiver's next action.",
+   "type": "local",
+   "check": "agrees"
+  },
+  {
+   "id": "phenomenal_pass",
+   "name": "Phenomenal Pass",
+   "slideId": "Show Time",
+   "hypothesis": "Laser auto-assist with 100% accuracy ignoring body balance.",
+   "finding": "+6 local ability; boosts off-balance passes.",
+   "type": "local",
+   "check": "agrees"
+  },
+  {
+   "id": "fighting_spirit",
+   "name": "Fighting Spirit",
+   "slideId": "ID 27",
+   "hypothesis": "Inactive until the stamina bar flashes red late in the match.",
+   "finding": "Active all 90 min: multiplies pressure penalties by 0.8 (−20%) and delays running-exhaustion drop-offs.",
+   "type": "system",
+   "check": "agrees"
+  },
+  {
+   "id": "acceleration_burst",
+   "name": "Acceleration Burst (Edge Turn)",
+   "slideId": "ID 55",
+   "hypothesis": "Adds +10 to Speed or Acceleration.",
+   "finding": "+0.1 tight-control coefficient at speed < 20 and a 1.025 config multiplier (internal parameter). No stat change.",
+   "type": "physics",
+   "check": "agrees"
+  },
+  {
+   "id": "bullet_header",
+   "name": "Bullet Header",
+   "slideId": "ID 53",
+   "hypothesis": "Adds raw points to Heading or Jump.",
+   "finding": "Exit-velocity upper bound +4.0 km/h and tighter dispersion. Stacks with standard Heading (+5 local).",
+   "type": "physics",
+   "check": "agrees"
+  },
+  {
+   "id": "fortress",
+   "name": "Fortress",
+   "slideId": "ID 46",
+   "hypothesis": "Placebo or a magical goal barrier.",
+   "finding": "Leading in the 2nd half / extra time: flat +6 to Defensive Awareness, Tackling, Defensive Engagement and Aggression.",
+   "type": "stat",
+   "check": "agrees"
+  },
+  {
+   "id": "magnetic_feet",
+   "name": "Magnetic Feet",
+   "slideId": "磁力脚 · slide 2",
+   "hypothesis": "",
+   "finding": "Scans opponents within 5 m (0 < dist < 5 m), excluding a 180° blind spot directly behind. 1 opponent +2, 2 → +4, 3 → +6, 4+ → +8 (max) to Dribbling, Tight Possession, Physical Contact and Balance. Clamped at 99: base must be ≤ 91 for the full +8.",
+   "type": "stat",
+   "check": "partly",
+   "vsCommunity": "Article: 0 < d < 5 m, +2 per opponent up to 4, capped at 99 (same). The 180° rear blind spot is not in the article."
+  },
+  {
+   "id": "long_reach_tackle",
+   "name": "Long-reach Tackle",
+   "slideId": "伸脚抢截 · ID 56",
+   "hypothesis": "Buffs raw Tackling or Aggression.",
+   "finding": "Does not modify Tackling. Animation tolerances: angular upper bound +5.625° (wider reach) and lateral correction +3 units (rate limit). Zero stat changes.",
+   "type": "physics",
+   "check": "agrees",
+   "vsCommunity": "Slides call it Power / Sliding Tackle; the Chinese name 伸脚抢截 is Long-reach Tackle."
+  },
+  {
+   "id": "gk_directing_defence",
+   "name": "GK Directing Defence",
+   "slideId": "slide 2",
+   "hypothesis": "",
+   "finding": "GK defensive zone behind the −18 m line (covers the whole defensive third for CBs): +2 Awareness & Tackling.",
+   "type": "stat",
+   "check": "conflict",
+   "vsCommunity": "Article: +2 Defensive Awareness and Aggression (not Tackling) to CB/LB/RB at −18 m or deeper. The engine keeps the article."
+  }
  ],
  "otherSkills": [
-  { "name": "Through Passing", "slideId": "Hybrid", "hypothesis": "Flat +5 to pass stats or auto-locks the trajectory into space.", "finding": "Hybrid model: +5 applies to random deviation, trajectory and lofted apex. The turn animation uses the base stat.", "type": "local", "action": { "attrs": ["lowPass", "loftedPass"], "flat": 5, "label": "Through passes" }, "check": "conflict", "vsCommunity": "r/Amadeusz measured +20% instead." },
-  { "name": "Power / Sliding Tackle", "slideId": "ID 56", "hypothesis": "Buffs raw Tackling or Aggression.", "finding": "Reach angle +5.625° and lateral limit +3 units (rate limit). Zero stat changes.", "type": "physics", "check": "new" }
- ]
+  {
+   "name": "Through Passing",
+   "slideId": "Hybrid",
+   "hypothesis": "Flat +5 to pass stats or auto-locks the trajectory into space.",
+   "finding": "Hybrid model: +5 applies to random deviation, trajectory and lofted apex. The turn animation uses the base stat.",
+   "type": "local",
+   "action": {
+    "attrs": [
+     "lowPass",
+     "loftedPass"
+    ],
+    "flat": 5,
+    "label": "Through passes"
+   },
+   "check": "conflict",
+   "vsCommunity": "r/Amadeusz measured +20% instead."
+  }
+ ],
+ "spatial": {
+  "slideId": "slide 2 · field_region_map_audit",
+  "claims": [
+   {
+    "topic": "Default pitch",
+    "claim": "105 m × 68 m.",
+    "check": "agrees",
+    "vsEngine": "Article: half 52.56 × 34.06 m (105.12 × 68.12 m)."
+   },
+   {
+    "topic": "+18 m line",
+    "claim": "18 m past halfway, 18.14 m before the penalty box; box front at +36.14 m.",
+    "check": "agrees",
+    "vsEngine": "Same numbers as the article's field-region diagram."
+   },
+   {
+    "topic": "−18 m line",
+    "claim": "Covers the entire defensive third for CBs.",
+    "check": "agrees",
+    "vsEngine": "Article: x ≤ −18 m."
+   },
+   {
+    "topic": "Magnetic Feet radar",
+    "claim": "0 < dist < 5 m, 180° blind spot directly behind.",
+    "check": "partly",
+    "vsEngine": "Radius matches; the blind spot is new (not modelled)."
+   }
+  ]
+ }
 }

@@ -269,3 +269,9 @@ td.ingame b { font-size: 14px; }
 .claim span { display: block; font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 2px; font-weight: 600; }
 .claim.hyp { background: color-mix(in srgb, #ffd166 8%, transparent); } .claim.hyp span { color: #e0b44c; }
 .claim.code { background: color-mix(in srgb, #2ec4a6 10%, transparent); } .claim.code span { color: #2ec4a6; }
+/* Build Planner: per-skill 99-cap check */
+.capcheck { margin: 4px 0 12px; display: grid; gap: 4px; }
+.capcheck > label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted, #9aa4b2); }
+.caprow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line, #2a3140); }
+.caprow.has-lost { border-color: color-mix(in srgb, var(--src-lost, #ff6b6b) 50%, transparent); }
+.caprow .muted { font-size: 12px; }

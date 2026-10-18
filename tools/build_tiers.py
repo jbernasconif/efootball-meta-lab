@@ -14,15 +14,16 @@ blocks = re.findall(r"```json\n(.*?)\n```", notes, re.S)
 g8 = json.loads(blocks[-1])
 
 amadeusz = {
-    "source": "r/Amadeusz via Skye's eFootball Encyclopedia (https://docs.google.com/spreadsheets/d/1A33zBtq6cVTghg6ytROST6k70SRMSFoOxEkSvdXSeRk/htmlview)",
+    "source": "r/Amadeusz (META image: latest post; other lists via Skye's eFootball Encyclopedia, https://docs.google.com/spreadsheets/d/1A33zBtq6cVTghg6ytROST6k70SRMSFoOxEkSvdXSeRk/htmlview)",
     "lists": [
         {
-            "title": "META players by position (Top 3 / Top 5 / Top 10)", "date": "2026-05-31", "url": "https://www.reddit.com/r/Amadeusz/s/gxOOxYukc5",
-            # Local copy (downloaded 18 Oct 2026 from the sheet's image) so the app does not depend on Google's link.
-            "image": "data/img/amadeusz-meta-2026-05-31.png",
-            "imageSource": "https://docs.google.com/spreadsheets/d/1A33zBtq6cVTghg6ytROST6k70SRMSFoOxEkSvdXSeRk/htmlview",
+            "title": "META players by position (Top 3 / Top 5 / Top 10)", "date": "2026-10-18",
+            "url": "https://www.reddit.com/r/Amadeusz/comments/1x95sjd/full_tier_list_updated_181026/",
+            # Local copy of the "Full tier list updated 18/10/26" image (shared by the user on 18 Oct 2026).
+            "image": "data/img/amadeusz-meta-2026-10-18.webp",
+            "imageSource": "https://www.reddit.com/r/Amadeusz/comments/1x95sjd/full_tier_list_updated_181026/",
             "imageOnly": True,
-            "note": "Original image (player faces only, no names). Click to open it full size.",
+            "note": "Full tier list updated 18 Oct 2026 (player faces only, no names). New cards are rated 5 days after release. Click to open it full size.",
             "tiers": [],
         },
         {

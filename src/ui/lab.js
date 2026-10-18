@@ -111,6 +111,8 @@ export function render(root, app) {
         <div class="card" style="grid-column:1/-1">
           <h2>Pitch · spatial conditions</h2>
           ${pitchSVG(s, D.mechanics.pitch, { highlight: SPATIAL[sk.id] ?? [] })}
+          ${D.skillClaims?.spatial ? `<div class="claimbox"><div class="row"><h3 style="margin:0">Disassembly · pitch geometry</h3><span class="badge mono">${esc(D.skillClaims.spatial.slideId)}</span><span class="spacer"></span><span class="muted" style="font-size:11px">community · unverified</span></div>
+            ${D.skillClaims.spatial.claims.map((c) => `<div style="font-size:13px;margin-top:6px">${checkBadge(c.check)} <b>${esc(c.topic)}:</b> ${esc(c.claim)} <span class="muted">${esc(c.vsEngine)}</span></div>`).join('')}</div>` : ''}
         </div>
         <div class="card">
           <h2>Skill simulator</h2>

@@ -7,6 +7,30 @@ import { emptyAllocation } from '../engine/progression.js';
 import { matchCardSkills } from '../engine/skills.js';
 import { weightsFor, skillStates, makeObjective, optimize, curvesFrom, curveValue } from '../engine/optimizer.js';
 
+// % upgrade of an action bonus over the Final value (info only).
+const pctUp = (bonus, base) => (base ? Math.round((bonus / base) * 1000) / 10 : 0);
+
+// 99-cap check per active stat skill: full benefit only while the stat before the skill is ≤ 99 − bonus.
+function skillCaps(D, active, rows, opponents) {
+  const out = [];
+  for (const id of active) {
+    const s = D.skills.skills.find((x) => x.id === id);
+    for (const e of s?.effects ?? []) {
+      if (e.kind !== 'temp' && e.kind !== 'temp_scaled') continue;
+      const amount = e.kind === 'temp' ? e.amount : e.perUnit * Math.min(opponents, e.maxUnits);
+      const max = 99 - amount;
+      const stats = e.attrs.filter((a) => rows[a]).map((a) => ({ a, pre: rows[a].afterManager, lost: Math.max(0, rows[a].afterManager + amount - 99) }));
+      out.push({ name: s.name, amount, max, stats, lost: stats.filter((x) => x.lost) });
+    }
+  }
+  if (!out.length) return '';
+  return `<div class="capcheck"><label>Skill caps</label>${out.map((c) => `<div class="caprow ${c.lost.length ? 'has-lost' : ''}">
+    <b>${esc(c.name)} +${c.amount}</b><span class="muted">full benefit if stat ≤ ${c.max} before the skill</span><span class="spacer"></span>
+    ${c.lost.length ? c.lost.map((x) => `<span class="lostchip" title="${esc(`${LABELS[x.a]} is ${x.pre} before the skill: ${x.pre} + ${c.amount} = ${x.pre + c.amount} → 99`)}">${LABELS[x.a]} ${x.pre} −${x.lost}</span>`).join('')
+      : `<span class="up" style="font-size:12px">✓ no loss${c.stats.length > 6 ? ` (${c.stats.length} stats)` : `: ${c.stats.map((x) => `${LABELS[x.a]} ${x.pre}`).join(', ')}`}</span>`}
+  </div>`).join('')}</div>`;
+}
+
 const ui = { q: '', mq: '', suggestFor: null, suggestions: null, role: null, manager: { id: null, playstyle: 'quickCounter', proficiency: 70 } };
 
 export const statColor = (v) => (v >= 90 ? 'c-elite' : v >= 80 ? 'c-high' : v >= 70 ? 'c-mid' : 'c-low');
@@ -297,10 +321,7 @@ function breakdownCard(app, card, b, alloc) {
   const commFx = communityEffectsFor(card, D.breakpoints, D.skillClaims);
   ui.ctx = ctx;
   ctx.active = ctx.active.filter((id) => toggles.some((t) => t.id === id) || commFx.some((e) => id === `comm:${e.skill}`));
-  // % upgrade of an action bonus over the Final value (info only).
-const pctUp = (bonus, base) => (base ? Math.round((bonus / base) * 1000) / 10 : 0);
-
-// Slot 1 = the card's own booster(s). Slot 2 = selectable +1 booster when the card's second slot is empty (as on eFHUB).
+  // Slot 1 = the card's own booster(s). Slot 2 = selectable +1 booster when the card's second slot is empty (as on eFHUB).
   const cardNames = card.boosterNames?.length ? card.boosterNames : Object.entries(b.boosters ?? {}).filter(([, v]) => v).map(([a, v]) => `${LABELS[a]} +${v}`);
   const slot2Free = cardNames.length < 2;
   if (!slot2Free) b.booster2 = null;
@@ -339,6 +360,7 @@ const pctUp = (bonus, base) => (base ? Math.round((bonus / base) * 1000) / 10 : 
         ${[...new Set(commFx.map((e) => e.skill))].map((name) => pill('skill', `comm:${name}`, ctx.active.includes(`comm:${name}`), `<span class="comm">&#9671;</span>${esc(name)}`, commFx.filter((e) => e.skill === name).map((e) => `${e.by}: ${e.flat ? `+${e.flat}` : `+${e.pct}%`} on ${e.action}${e.cap ? ', capped at 99' : ''}`).join(' · ') + ' — shown as % upgrade, not added to Final')).join('')}
         ${toggles.some((t) => t.id === 'magnetic_feet') && ctx.active.includes('magnetic_feet') ? `<span class="opp">Opponents within 5 m <input type="range" min="1" max="4" value="${ctx.opponents}" data-action="opp"> <b>${ctx.opponents}</b></span>` : ''}</div></div>` : ''}
     </div>
+    ${skillCaps(D, ctx.active, rows, ctx.opponents)}
 
     ${unsplit ? `<div class="notice" style="margin-top:0">Booster not separated yet for this card (re-scrape pending).</div>` : ''}
     <div class="legend2">${SRC.map(([k, l, t]) => `<span title="${esc(t)}"><i class="dot2 s-${k}"></i>${l}</span>`).join('')}<span><i class="capmark"></i>99 cap</span></div>
