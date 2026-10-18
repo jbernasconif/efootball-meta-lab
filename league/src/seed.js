@@ -15,7 +15,7 @@ export async function seedFromFile() {
   const data = payload?.data && typeof payload.data === "object" ? payload.data : payload;
   if (!data || typeof data !== "object") return;
   const stamp = payload?.saved || JSON.stringify(Object.keys(data)).length + "";
-  if (localStorage.getItem(STAMP) === stamp) return;      // ya aplicado
+  if (localStorage.getItem(STAMP) === stamp) { dropPlaceholderTeams(); return; }   // ya aplicado
 
   const byId = (mine, theirs) => {
     const m = {};
@@ -45,4 +45,20 @@ export async function seedFromFile() {
     } catch (e) { localStorage.setItem(key, incoming); }
   });
   localStorage.setItem(STAMP, stamp);
+  dropPlaceholderTeams();
+}
+
+// Quien abrió el sitio antes de que hubiera data.json recibió 13 equipos vacíos ("Team 1"…,
+// creados por emptyTeam en App.jsx). Al llegar los clubes reales se sumaban (26 clubes).
+// Si conviven con equipos reales, los vacíos sin tocar se quitan.
+function dropPlaceholderTeams() {
+  const key = P + "shared:teams-data";
+  try {
+    const teams = JSON.parse(localStorage.getItem(key) || "null");
+    if (!Array.isArray(teams)) return;
+    const blank = (t) => /^Team \d+$/.test(t?.name || "") && !t.captain && !t.crest && !t.bio && !t.history
+      && !t.tagline && !t.founded && !(t.trophies || []).length;
+    const real = teams.filter((t) => !blank(t));
+    if (real.length && real.length < teams.length) localStorage.setItem(key, JSON.stringify(real));
+  } catch (e) { /* datos ilegibles: no tocar */ }
 }
