@@ -16,553 +16,1598 @@
   },
   "skills": [
     {
-      "id": "shadow_hunt", "order": 1, "name": "Shadow Hunt", "internalId": "SHADOW_GUARDIAN",
-      "anchor": "#01-shadow-hunt", "effectCategory": "temporary_attribute",
+      "id": "shadow_hunt",
+      "order": 1,
+      "name": "Shadow Hunt",
+      "internalId": "SHADOW_GUARDIAN",
+      "anchor": "#01-shadow-hunt",
+      "effectCategory": "temporary_attribute",
       "summary": "Speed +3 and Acceleration +3 while chasing a loose ball an opponent played in behind.",
-      "attributes": ["speed", "acceleration"],
+      "attributes": [
+        "speed",
+        "acceleration"
+      ],
       "magnitude": "+3 each",
-      "effects": [{ "kind": "temp", "target": "self", "attrs": ["speed", "acceleration"], "amount": 3 }],
-      "activation": { "all": [
-        { "fact": "role", "op": "in", "value": ["CB", "LB", "RB", "DMF"], "label": "Playing CB/LB/RB/DMF in the formation" },
-        { "fact": "lastContact", "op": "==", "value": "opponent_pass", "label": "Last touch: opponent short/through/long pass or throw (crosses and throw-ins count)" },
-        { "fact": "possession", "op": "==", "value": "none", "label": "No valid ball holder (loose ball)" },
-        { "fact": "ballCloserToOwnGoal", "op": "==", "value": true, "label": "Ball is closer to own goal line than the player" },
-        { "fact": "moveAngleToOwnEnd", "op": "<", "value": 90, "label": "Running toward own end at an angle below 90°" }
-      ] },
-      "eligiblePositions": ["CB", "LB", "RB", "DMF"],
+      "effects": [
+        {
+          "kind": "temp",
+          "target": "self",
+          "attrs": [
+            "speed",
+            "acceleration"
+          ],
+          "amount": 3
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "role",
+            "op": "in",
+            "value": [
+              "CB",
+              "LB",
+              "RB",
+              "DMF"
+            ],
+            "label": "Playing CB/LB/RB/DMF in the formation"
+          },
+          {
+            "fact": "lastContact",
+            "op": "==",
+            "value": "opponent_pass",
+            "label": "Last touch: opponent short/through/long pass or throw (crosses and throw-ins count)"
+          },
+          {
+            "fact": "possession",
+            "op": "==",
+            "value": "none",
+            "label": "No valid ball holder (loose ball)"
+          },
+          {
+            "fact": "ballCloserToOwnGoal",
+            "op": "==",
+            "value": true,
+            "label": "Ball is closer to own goal line than the player"
+          },
+          {
+            "fact": "moveAngleToOwnEnd",
+            "op": "<",
+            "value": 90,
+            "label": "Running toward own end at an angle below 90°"
+          }
+        ]
+      },
+      "eligiblePositions": [
+        "CB",
+        "LB",
+        "RB",
+        "DMF"
+      ],
       "possession": "Nobody; last touch was an opponent pass",
       "zone": "No own-half requirement; ball behind the player",
       "timeScore": "None",
       "duration": "Turns off at the next recalculation after an opponent receives, or when any condition fails. No fixed timer.",
       "stacking": [],
-      "cap99": { "fullBonusUpTo": 96, "text": "Full bonus up to 96 before the cap." },
+      "cap99": {
+        "fullBonusUpTo": 96,
+        "text": "Full bonus up to 96 before the cap."
+      },
       "movement": "Attribute points, not a running-speed percentage.",
       "evidence": "Code analysis and constructed scenarios (article section 01).",
       "validation": "code_documented",
-      "uncertainties": ["Some movement modes unmapped", "Frame latency not measured"]
+      "uncertainties": [
+        "Some movement modes unmapped",
+        "Frame latency not measured"
+      ]
     },
     {
-      "id": "attack_trigger", "order": 2, "name": "Attack Trigger", "internalId": "MAESTRO_SIGNAL",
-      "anchor": "#02-attack-trigger", "effectCategory": "temporary_attribute",
+      "id": "attack_trigger",
+      "order": 2,
+      "name": "Attack Trigger",
+      "internalId": "MAESTRO_SIGNAL",
+      "anchor": "#02-attack-trigger",
+      "effectCategory": "temporary_attribute",
       "summary": "Teammates (not the holder) get Offensive Awareness +3 while the skill holder has the ball.",
-      "attributes": ["offensiveAwareness"],
+      "attributes": [
+        "offensiveAwareness"
+      ],
       "magnitude": "+3 to teammates",
-      "effects": [{ "kind": "temp", "target": "recipient", "provider": "providerAttackTrigger", "attrs": ["offensiveAwareness"], "amount": 3 }],
-      "activation": { "all": [
-        { "fact": "providerAttackTrigger", "op": "==", "value": true, "label": "The current ball holder (a teammate) has Attack Trigger" },
-        { "fact": "possession", "op": "==", "value": "teammate", "label": "A teammate holds the ball (the holder does not benefit)" },
-        { "fact": "inPlay", "op": "==", "value": true, "label": "Live play (IN_PLAY)" }
-      ] },
+      "effects": [
+        {
+          "kind": "temp",
+          "target": "recipient",
+          "provider": "providerAttackTrigger",
+          "attrs": [
+            "offensiveAwareness"
+          ],
+          "amount": 3
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "providerAttackTrigger",
+            "op": "==",
+            "value": true,
+            "label": "The current ball holder (a teammate) has Attack Trigger"
+          },
+          {
+            "fact": "possession",
+            "op": "==",
+            "value": "teammate",
+            "label": "A teammate holds the ball (the holder does not benefit)"
+          },
+          {
+            "fact": "inPlay",
+            "op": "==",
+            "value": true,
+            "label": "Live play (IN_PLAY)"
+          }
+        ]
+      },
       "eligiblePositions": null,
       "possession": "Teammate with the skill holds the ball",
       "zone": "No position or distance limit",
       "timeScore": "None",
       "duration": "Ends on possession change, no valid holder, opponent possession or leaving IN_PLAY.",
       "stacking": [],
-      "cap99": { "fullBonusUpTo": 96, "text": "Full bonus up to 96 before the cap." },
+      "cap99": {
+        "fullBonusUpTo": 96,
+        "text": "Full bonus up to 96 before the cap."
+      },
       "movement": null,
       "evidence": "Code analysis (article section 02).",
       "validation": "code_documented",
-      "uncertainties": ["Exact frame the possession record clears during a pass"]
+      "uncertainties": [
+        "Exact frame the possession record clears during a pass"
+      ]
     },
     {
-      "id": "attacking_surge", "order": 3, "name": "Attacking Surge", "internalId": "BREAK_SPRINT",
-      "anchor": "#03-attacking-surge", "effectCategory": "temporary_attribute",
+      "id": "attacking_surge",
+      "order": 3,
+      "name": "Attacking Surge",
+      "internalId": "BREAK_SPRINT",
+      "anchor": "#03-attacking-surge",
+      "effectCategory": "temporary_attribute",
       "summary": "Off the ball: Speed +3 and Acceleration +3 in the opponent's half while a teammate has the ball.",
-      "attributes": ["speed", "acceleration"],
+      "attributes": [
+        "speed",
+        "acceleration"
+      ],
       "magnitude": "+3 each",
-      "effects": [{ "kind": "temp", "target": "self", "attrs": ["speed", "acceleration"], "amount": 3 }],
-      "activation": { "all": [
-        { "fact": "x", "op": ">", "value": 0, "label": "Strictly in the opponent's half" },
-        { "fact": "possession", "op": "==", "value": "teammate", "label": "A teammate has the ball" },
-        { "fact": "inPlay", "op": "==", "value": true, "label": "IN_PLAY" }
-      ] },
+      "effects": [
+        {
+          "kind": "temp",
+          "target": "self",
+          "attrs": [
+            "speed",
+            "acceleration"
+          ],
+          "amount": 3
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "x",
+            "op": ">",
+            "value": 0,
+            "label": "Strictly in the opponent's half"
+          },
+          {
+            "fact": "possession",
+            "op": "==",
+            "value": "teammate",
+            "label": "A teammate has the ball"
+          },
+          {
+            "fact": "inPlay",
+            "op": "==",
+            "value": true,
+            "label": "IN_PLAY"
+          }
+        ]
+      },
       "eligiblePositions": null,
       "possession": "Teammate holds the ball (player off the ball)",
       "zone": "Opponent's half (x > 0)",
       "timeScore": "None",
       "duration": "Ends when he receives, opponent wins the ball, no holder, back to halfway/own half, or leaving IN_PLAY.",
-      "stacking": ["ST02"],
-      "cap99": { "fullBonusUpTo": 96, "text": "Full bonus up to 96 before the cap." },
+      "stacking": [
+        "ST02"
+      ],
+      "cap99": {
+        "fullBonusUpTo": 96,
+        "text": "Full bonus up to 96 before the cap."
+      },
       "movement": "Attribute points, not a fixed speed percentage.",
       "evidence": "Code analysis (article section 03).",
       "validation": "code_documented",
       "uncertainties": []
     },
     {
-      "id": "fighting_spirit", "order": 4, "name": "Fighting Spirit", "internalId": "COMBATIVE_SPIRIT",
-      "anchor": "#04-fighting-spirit", "effectCategory": "penalty_fatigue",
+      "id": "fighting_spirit",
+      "order": 4,
+      "name": "Fighting Spirit",
+      "internalId": "COMBATIVE_SPIRIT",
+      "anchor": "#04-fighting-spirit",
+      "effectCategory": "penalty_fatigue",
       "summary": "No attribute points. Cuts one ball-release penalty component under pressure (×0.8), changes AI run fatigue thresholds and relaxes low-header eligibility.",
       "attributes": [],
       "magnitude": "×0.8 penalty component; fatigue 60%→75% (captain 70%→85%); +10 internal distance",
-      "effects": [{ "kind": "motion", "formula": "fighting_spirit" }],
-      "activation": { "all": [] },
+      "effects": [
+        {
+          "kind": "motion",
+          "formula": "fighting_spirit"
+        }
+      ],
+      "activation": {
+        "all": []
+      },
       "eligiblePositions": null,
       "possession": "Depends on sub-effect",
       "zone": "—",
       "timeScore": "—",
       "duration": "Passive, per sub-effect.",
       "stacking": [],
-      "cap99": { "fullBonusUpTo": null, "text": "Not applicable (not attribute points)." },
+      "cap99": {
+        "fullBonusUpTo": null,
+        "text": "Not applicable (not attribute points)."
+      },
       "movement": "Initial threshold = min(100, 60 + 10·captain + 15·FS + 15·special defensive condition); q = N(consumed %, threshold, min(threshold+20,100)); distance threshold = 40 − 35q + 15 (attacking) + (10 FS / 5 captain / 0). The fatigue ratio is internal, not the Stamina stat.",
       "evidence": "Code analysis (article section 04).",
       "validation": "partial",
-      "uncertainties": ["Full-match success and running gains not measured", "Link between fatigue ratio and the stamina bar"]
+      "uncertainties": [
+        "Full-match success and running gains not measured",
+        "Link between fatigue ratio and the stamina bar"
+      ]
     },
     {
-      "id": "fortress", "order": 5, "name": "Fortress", "internalId": "FORTRESS",
-      "anchor": "#05-fortress", "effectCategory": "temporary_attribute",
+      "id": "fortress",
+      "order": 5,
+      "name": "Fortress",
+      "internalId": "FORTRESS",
+      "anchor": "#05-fortress",
+      "effectCategory": "temporary_attribute",
       "summary": "Defensive Awareness, Tackling, Aggression and Defensive Engagement +6 (holder only) in the 2nd half or later while strictly ahead.",
-      "attributes": ["defensiveAwareness", "tackling", "aggression", "defensiveEngagement"],
+      "attributes": [
+        "defensiveAwareness",
+        "tackling",
+        "aggression",
+        "defensiveEngagement"
+      ],
       "magnitude": "+6 each",
-      "effects": [{ "kind": "temp", "target": "self", "attrs": ["defensiveAwareness", "tackling", "aggression", "defensiveEngagement"], "amount": 6 }],
-      "activation": { "all": [
-        { "fact": "half", "op": ">=", "value": 2, "label": "2nd half or later (1st-half stoppage and half-time excluded)" },
-        { "fact": "scoreState", "op": "==", "value": "ahead", "label": "Team strictly ahead (regulation + extra-time goals, no shootout)" }
-      ] },
+      "effects": [
+        {
+          "kind": "temp",
+          "target": "self",
+          "attrs": [
+            "defensiveAwareness",
+            "tackling",
+            "aggression",
+            "defensiveEngagement"
+          ],
+          "amount": 6
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "half",
+            "op": ">=",
+            "value": 2,
+            "label": "2nd half or later (1st-half stoppage and half-time excluded)"
+          },
+          {
+            "fact": "scoreState",
+            "op": "==",
+            "value": "ahead",
+            "label": "Team strictly ahead (regulation + extra-time goals, no shootout)"
+          }
+        ]
+      },
       "eligiblePositions": null,
       "possession": "None",
       "zone": "None",
       "timeScore": "2nd half or extra time; winning",
       "duration": "Off when level or behind; back on when retaking the lead.",
-      "stacking": ["ST01"],
-      "cap99": { "fullBonusUpTo": 93, "text": "Full bonus up to 93 before the cap. The intermediate 105 is not the final readback." },
+      "stacking": [
+        "ST01"
+      ],
+      "cap99": {
+        "fullBonusUpTo": 93,
+        "text": "Full bonus up to 93 before the cap. The intermediate 105 is not the final readback."
+      },
       "movement": null,
       "evidence": "Code analysis + cap worked example (article sections 05 and 99 Cap).",
       "validation": "code_documented",
       "uncertainties": []
     },
     {
-      "id": "super_sub", "order": 6, "name": "Super-sub", "internalId": "SUPER_SUB",
-      "anchor": "#06-super-sub", "effectCategory": "temporary_attribute",
+      "id": "super_sub",
+      "order": 6,
+      "name": "Super-sub",
+      "internalId": "SUPER_SUB",
+      "anchor": "#06-super-sub",
+      "effectCategory": "temporary_attribute",
       "summary": "+1 to 25 core attributes when he comes on at half-time, in the 2nd half or in extra time.",
-      "attributes": ["offensiveAwareness", "defensiveAwareness", "gkAwareness", "defensiveEngagement", "dribbling", "ballControl", "tightPossession", "finishing", "lowPass", "loftedPass", "heading", "tackling", "aggression", "placeKicking", "curl", "gkCatching", "gkParrying", "gkReflexes", "gkReach", "speed", "physicalContact", "balance", "kickingPower", "acceleration", "jump"],
+      "attributes": [
+        "offensiveAwareness",
+        "defensiveAwareness",
+        "gkAwareness",
+        "defensiveEngagement",
+        "dribbling",
+        "ballControl",
+        "tightPossession",
+        "finishing",
+        "lowPass",
+        "loftedPass",
+        "heading",
+        "tackling",
+        "aggression",
+        "placeKicking",
+        "curl",
+        "gkCatching",
+        "gkParrying",
+        "gkReflexes",
+        "gkReach",
+        "speed",
+        "physicalContact",
+        "balance",
+        "kickingPower",
+        "acceleration",
+        "jump"
+      ],
       "magnitude": "+1 to 25 attributes (not Stamina)",
-      "effects": [{ "kind": "temp", "target": "self", "attrs": ["offensiveAwareness", "defensiveAwareness", "gkAwareness", "defensiveEngagement", "dribbling", "ballControl", "tightPossession", "finishing", "lowPass", "loftedPass", "heading", "tackling", "aggression", "placeKicking", "curl", "gkCatching", "gkParrying", "gkReflexes", "gkReach", "speed", "physicalContact", "balance", "kickingPower", "acceleration", "jump"], "amount": 1 }],
-      "activation": { "all": [
-        { "fact": "isSubstitute", "op": "==", "value": true, "label": "Came on as a substitute" },
-        { "fact": "subEntry", "op": "in", "value": ["second_half", "et_first", "et_second"], "label": "Came on at half-time / 2nd half (flag 1) or in extra time (flags 2–3)" }
-      ] },
+      "effects": [
+        {
+          "kind": "temp",
+          "target": "self",
+          "attrs": [
+            "offensiveAwareness",
+            "defensiveAwareness",
+            "gkAwareness",
+            "defensiveEngagement",
+            "dribbling",
+            "ballControl",
+            "tightPossession",
+            "finishing",
+            "lowPass",
+            "loftedPass",
+            "heading",
+            "tackling",
+            "aggression",
+            "placeKicking",
+            "curl",
+            "gkCatching",
+            "gkParrying",
+            "gkReflexes",
+            "gkReach",
+            "speed",
+            "physicalContact",
+            "balance",
+            "kickingPower",
+            "acceleration",
+            "jump"
+          ],
+          "amount": 1
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "isSubstitute",
+            "op": "==",
+            "value": true,
+            "label": "Came on as a substitute"
+          },
+          {
+            "fact": "subEntry",
+            "op": "in",
+            "value": [
+              "second_half",
+              "et_first",
+              "et_second"
+            ],
+            "label": "Came on at half-time / 2nd half (flag 1) or in extra time (flags 2–3)"
+          }
+        ]
+      },
       "eligiblePositions": null,
       "possession": "None",
       "zone": "None",
       "timeScore": "Starters and 1st-half subs do not qualify. No minute threshold.",
       "duration": "For the rest of the match after a qualifying entry.",
-      "stacking": ["ST01"],
-      "cap99": { "fullBonusUpTo": 98, "text": "98+1=99; 99 stays 99." },
+      "stacking": [
+        "ST01"
+      ],
+      "cap99": {
+        "fullBonusUpTo": 98,
+        "text": "98+1=99; 99 stays 99."
+      },
       "movement": null,
       "evidence": "Code analysis (article section 06).",
       "validation": "code_documented",
-      "uncertainties": ["Practical benefit in shootouts not established (flag 4 during penalty prep)", "Frame latency"]
+      "uncertainties": [
+        "Practical benefit in shootouts not established (flag 4 during penalty prep)",
+        "Frame latency"
+      ]
     },
     {
-      "id": "momentum_dribbling", "order": 7, "name": "Momentum Dribbling", "internalId": "MOMENTUM_DRIBBLING",
-      "anchor": "#07-momentum-dribbling", "effectCategory": "temporary_attribute",
+      "id": "momentum_dribbling",
+      "order": 7,
+      "name": "Momentum Dribbling",
+      "internalId": "MOMENTUM_DRIBBLING",
+      "anchor": "#07-momentum-dribbling",
+      "effectCategory": "temporary_attribute",
       "summary": "Dribbling, Tight Possession, Speed and Acceleration +6 while holding the ball at least 18 m past halfway.",
-      "attributes": ["dribbling", "tightPossession", "speed", "acceleration"],
+      "attributes": [
+        "dribbling",
+        "tightPossession",
+        "speed",
+        "acceleration"
+      ],
       "magnitude": "+6 each",
-      "effects": [{ "kind": "temp", "target": "self", "attrs": ["dribbling", "tightPossession", "speed", "acceleration"], "amount": 6 }],
-      "activation": { "all": [
-        { "fact": "possession", "op": "==", "value": "self", "label": "He is the current ball holder" },
-        { "fact": "x", "op": ">=", "value": 18, "label": "At least 18 m past halfway (full width, default pitch)" }
-      ] },
+      "effects": [
+        {
+          "kind": "temp",
+          "target": "self",
+          "attrs": [
+            "dribbling",
+            "tightPossession",
+            "speed",
+            "acceleration"
+          ],
+          "amount": 6
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "possession",
+            "op": "==",
+            "value": "self",
+            "label": "He is the current ball holder"
+          },
+          {
+            "fact": "x",
+            "op": ">=",
+            "value": 18,
+            "label": "At least 18 m past halfway (full width, default pitch)"
+          }
+        ]
+      },
       "eligiblePositions": null,
       "possession": "Ball holder",
       "zone": "x ≥ +18 m (attacking direction)",
       "timeScore": "None. No sprint, speed or nearby-opponent requirement; no IN_PLAY check.",
       "duration": "Lost when losing the ball or leaving the region.",
-      "stacking": ["ST02"],
-      "cap99": { "fullBonusUpTo": 93, "text": "Full bonus up to 93 before the cap." },
+      "stacking": [
+        "ST02"
+      ],
+      "cap99": {
+        "fullBonusUpTo": 93,
+        "text": "Full bonus up to 93 before the cap."
+      },
       "movement": null,
       "evidence": "Code analysis (article section 07 and ±18 diagram).",
       "validation": "code_documented",
-      "uncertainties": ["Configurable pitch scaling not observed"]
+      "uncertainties": [
+        "Configurable pitch scaling not observed"
+      ]
     },
     {
-      "id": "aerial_fort", "order": 8, "name": "Aerial Fort", "internalId": "DF_SKY_HIGH",
-      "anchor": "#08-aerial-fort", "effectCategory": "temporary_attribute",
+      "id": "aerial_fort",
+      "order": 8,
+      "name": "Aerial Fort",
+      "internalId": "DF_SKY_HIGH",
+      "anchor": "#08-aerial-fort",
+      "effectCategory": "temporary_attribute",
       "summary": "Physical Contact +4 and Jump +4 on defensive aerial receptions in his own box. No Heading bonus.",
-      "attributes": ["physicalContact", "jump"],
+      "attributes": [
+        "physicalContact",
+        "jump"
+      ],
       "magnitude": "+4 each",
-      "effects": [{ "kind": "temp", "target": "self", "attrs": ["physicalContact", "jump"], "amount": 4 }],
-      "activation": { "all": [
-        { "fact": "lastContact", "op": "in", "value": ["opponent_pass", "teammate_pass"], "label": "Last touch: short/long/through pass or throw (either team)" },
-        { "fact": "passGet", "op": "==", "value": true, "label": "In PASS_GET state" },
-        { "fact": "ballHigher", "op": "==", "value": true, "label": "Nearest trajectory sample to the target is strictly higher than the player" },
-        { "any": [
-          { "fact": "inOwnBox", "op": "==", "value": true, "label": "Inside own penalty area" },
-          { "all": [
-            { "fact": "ballOrigin", "op": "==", "value": "open_play" },
-            { "fact": "storedPointInOwnBox", "op": "==", "value": true }
-          ], "label": "Outside the box, open play: stored point inside own box" },
-          { "all": [
-            { "fact": "ballOrigin", "op": "==", "value": "set_piece" },
-            { "fact": "storedPointInOwnBox", "op": "==", "value": true },
-            { "fact": "ballInOwnBox", "op": "==", "value": true }
-          ], "label": "Outside the box, goal kick/corner/free kick: stored point and ball inside own box" }
-        ], "label": "Location rule" }
-      ] },
+      "effects": [
+        {
+          "kind": "temp",
+          "target": "self",
+          "attrs": [
+            "physicalContact",
+            "jump"
+          ],
+          "amount": 4
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "lastContact",
+            "op": "in",
+            "value": [
+              "opponent_pass",
+              "teammate_pass"
+            ],
+            "label": "Last touch: short/long/through pass or throw (either team)"
+          },
+          {
+            "fact": "passGet",
+            "op": "==",
+            "value": true,
+            "label": "In PASS_GET state"
+          },
+          {
+            "fact": "ballHigher",
+            "op": "==",
+            "value": true,
+            "label": "Nearest trajectory sample to the target is strictly higher than the player"
+          },
+          {
+            "any": [
+              {
+                "fact": "inOwnBox",
+                "op": "==",
+                "value": true,
+                "label": "Inside own penalty area"
+              },
+              {
+                "all": [
+                  {
+                    "fact": "ballOrigin",
+                    "op": "==",
+                    "value": "open_play"
+                  },
+                  {
+                    "fact": "storedPointInOwnBox",
+                    "op": "==",
+                    "value": true
+                  }
+                ],
+                "label": "Outside the box, open play: stored point inside own box"
+              },
+              {
+                "all": [
+                  {
+                    "fact": "ballOrigin",
+                    "op": "==",
+                    "value": "set_piece"
+                  },
+                  {
+                    "fact": "storedPointInOwnBox",
+                    "op": "==",
+                    "value": true
+                  },
+                  {
+                    "fact": "ballInOwnBox",
+                    "op": "==",
+                    "value": true
+                  }
+                ],
+                "label": "Outside the box, goal kick/corner/free kick: stored point and ball inside own box"
+              }
+            ],
+            "label": "Location rule"
+          }
+        ]
+      },
       "eligiblePositions": null,
       "possession": "Receiving a pass (PASS_GET)",
       "zone": "Own penalty area (or stored point inside it)",
       "timeScore": "None",
       "duration": "While the aerial reception conditions hold.",
       "stacking": [],
-      "cap99": { "fullBonusUpTo": 95, "text": "Full bonus up to 95 before the cap." },
+      "cap99": {
+        "fullBonusUpTo": 95,
+        "text": "Full bonus up to 95 before the cap."
+      },
       "movement": "Alternative path: header subtype with metadata 0 in long-pass, short-pass or shot categories. A PASS_GET height failure does not fall back to it. Headers in the opponent's box are not directly eligible.",
       "evidence": "Code analysis (article section 08).",
       "validation": "code_documented",
-      "uncertainties": ["Stored position point generation not fully traced"]
+      "uncertainties": [
+        "Stored position point generation not fully traced"
+      ]
     },
     {
-      "id": "gk_directing_defence", "order": 9, "name": "GK Directing Defence", "internalId": "GK_COACHING",
-      "anchor": "#09-gk-directing-defence", "effectCategory": "temporary_attribute",
-      "summary": "An on-pitch GK with the skill gives Defensive Awareness +2 and Aggression +2 to CB/LB/RB at −18 m or deeper.",
-      "attributes": ["defensiveAwareness", "aggression"],
+      "id": "gk_directing_defence",
+      "order": 9,
+      "name": "GK Directing Defence",
+      "internalId": "GK_COACHING",
+      "anchor": "#09-gk-directing-defence",
+      "effectCategory": "temporary_attribute",
+      "summary": "An on-pitch GK with the skill gives Defensive Awareness +2 and Tackling +2 to CB/LB/RB at −18 m or deeper.",
+      "attributes": [
+        "defensiveAwareness",
+        "tackling"
+      ],
       "magnitude": "+2 each to recipients",
-      "effects": [{ "kind": "temp", "target": "recipient", "provider": "gkDirectingDefence", "attrs": ["defensiveAwareness", "aggression"], "amount": 2 }],
-      "activation": { "all": [
-        { "fact": "gkDirectingDefence", "op": "==", "value": true, "label": "On-pitch formation GK has the skill (subs do not count)" },
-        { "fact": "role", "op": "in", "value": ["CB", "LB", "RB"], "label": "Recipient is CB/LB/RB (not DMF or GK)" },
-        { "fact": "x", "op": "<=", "value": -18, "label": "Recipient at −18 m or deeper" }
-      ] },
-      "eligiblePositions": ["CB", "LB", "RB"],
+      "effects": [
+        {
+          "kind": "temp",
+          "target": "recipient",
+          "provider": "gkDirectingDefence",
+          "attrs": [
+            "defensiveAwareness",
+            "tackling"
+          ],
+          "amount": 2
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "gkDirectingDefence",
+            "op": "==",
+            "value": true,
+            "label": "On-pitch formation GK has the skill (subs do not count)"
+          },
+          {
+            "fact": "role",
+            "op": "in",
+            "value": [
+              "CB",
+              "LB",
+              "RB"
+            ],
+            "label": "Recipient is CB/LB/RB (not DMF or GK)"
+          },
+          {
+            "fact": "x",
+            "op": "<=",
+            "value": -18,
+            "label": "Recipient at −18 m or deeper"
+          }
+        ]
+      },
+      "eligiblePositions": [
+        "CB",
+        "LB",
+        "RB"
+      ],
       "possession": "None",
       "zone": "x ≤ −18 m",
       "timeScore": "None",
       "duration": "Ends if the recipient leaves the zone or becomes ineligible, or the GK no longer qualifies.",
-      "stacking": ["ST03"],
-      "cap99": { "fullBonusUpTo": 97, "text": "Full bonus up to 97 before the cap." },
+      "stacking": [
+        "ST03"
+      ],
+      "cap99": {
+        "fullBonusUpTo": 97,
+        "text": "Full bonus up to 97 before the cap."
+      },
       "movement": null,
-      "evidence": "Code branch + constructed scenario, not match statistics.",
+      "evidence": "Code branch + constructed scenario, not match statistics. Datamine (libUE4.so) gives Tackling instead of the article's Aggression; the datamine value is used (user decision, 18 Oct 2026).",
       "validation": "code_documented",
-      "uncertainties": ["A failed separate test does not prove the code is absent"]
+      "uncertainties": [
+        "A failed separate test does not prove the code is absent"
+      ]
     },
     {
-      "id": "gk_spirit_roar", "order": 10, "name": "GK Spirit Roar", "internalId": "GK_ALERT",
-      "anchor": "#10-gk-spirit-roar", "effectCategory": "temporary_attribute",
+      "id": "gk_spirit_roar",
+      "order": 10,
+      "name": "GK Spirit Roar",
+      "internalId": "GK_ALERT",
+      "anchor": "#10-gk-spirit-roar",
+      "effectCategory": "temporary_attribute",
       "summary": "A GK with the skill gives Physical Contact, Jump and Acceleration +2 to CB/LB/RB in the 2nd half while ahead.",
-      "attributes": ["physicalContact", "jump", "acceleration"],
+      "attributes": [
+        "physicalContact",
+        "jump",
+        "acceleration"
+      ],
       "magnitude": "+2 each to recipients",
-      "effects": [{ "kind": "temp", "target": "recipient", "provider": "gkSpiritRoar", "attrs": ["physicalContact", "jump", "acceleration"], "amount": 2 }],
-      "activation": { "all": [
-        { "fact": "gkSpiritRoar", "op": "==", "value": true, "label": "On-pitch GK has the skill" },
-        { "fact": "role", "op": "in", "value": ["CB", "LB", "RB"], "label": "Recipient is CB/LB/RB (not DMF)" },
-        { "fact": "half", "op": ">=", "value": 2, "label": "2nd half or later" },
-        { "fact": "scoreState", "op": "==", "value": "ahead", "label": "Strictly ahead (a draw does not count)" }
-      ] },
-      "eligiblePositions": ["CB", "LB", "RB"],
+      "effects": [
+        {
+          "kind": "temp",
+          "target": "recipient",
+          "provider": "gkSpiritRoar",
+          "attrs": [
+            "physicalContact",
+            "jump",
+            "acceleration"
+          ],
+          "amount": 2
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "gkSpiritRoar",
+            "op": "==",
+            "value": true,
+            "label": "On-pitch GK has the skill"
+          },
+          {
+            "fact": "role",
+            "op": "in",
+            "value": [
+              "CB",
+              "LB",
+              "RB"
+            ],
+            "label": "Recipient is CB/LB/RB (not DMF)"
+          },
+          {
+            "fact": "half",
+            "op": ">=",
+            "value": 2,
+            "label": "2nd half or later"
+          },
+          {
+            "fact": "scoreState",
+            "op": "==",
+            "value": "ahead",
+            "label": "Strictly ahead (a draw does not count)"
+          }
+        ]
+      },
+      "eligiblePositions": [
+        "CB",
+        "LB",
+        "RB"
+      ],
       "possession": "Opponent possession not required",
       "zone": "No deep-zone requirement",
       "timeScore": "2nd half or later; winning",
       "duration": "While score and time conditions hold.",
-      "stacking": ["ST03"],
-      "cap99": { "fullBonusUpTo": 97, "text": "Full bonus up to 97 before the cap." },
+      "stacking": [
+        "ST03"
+      ],
+      "cap99": {
+        "fullBonusUpTo": 97,
+        "text": "Full bonus up to 97 before the cap."
+      },
       "movement": null,
       "evidence": "Code analysis (article section 10).",
       "validation": "code_documented",
-      "uncertainties": ["'Physical abilities' must not be extended to Speed, Stamina or all defensive stats"]
+      "uncertainties": [
+        "'Physical abilities' must not be extended to Speed, Stamina or all defensive stats"
+      ]
     },
     {
-      "id": "low_screamer", "order": 11, "name": "Low Screamer", "internalId": "LOW_IMPACT_SHOT",
-      "anchor": "#11-low-screamer", "effectCategory": "motion_parameter",
+      "id": "low_screamer",
+      "order": 11,
+      "name": "Low Screamer",
+      "internalId": "LOW_IMPACT_SHOT",
+      "anchor": "#11-low-screamer",
+      "effectCategory": "motion_parameter",
       "summary": "A Stunning Shot below 50% power uses a dedicated low-shot motion and +0.2 to the local power parameter. Kicking Power is unchanged.",
       "attributes": [],
       "magnitude": "Local power +0.2 (e.g. 0.4→0.6); another error coefficient reads power +0.1 (not quantified)",
-      "effects": [{ "kind": "motion", "formula": "low_screamer" }],
-      "activation": { "all": [
-        { "fact": "action", "op": "==", "value": "stunning_shot", "label": "Stunning Shot" },
-        { "fact": "shotPower", "op": "<", "value": 0.5, "label": "Power strictly below 50% (exactly 50% excluded)" }
-      ] },
+      "effects": [
+        {
+          "kind": "motion",
+          "formula": "low_screamer"
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "action",
+            "op": "==",
+            "value": "stunning_shot",
+            "label": "Stunning Shot"
+          },
+          {
+            "fact": "shotPower",
+            "op": "<",
+            "value": 0.5,
+            "label": "Power strictly below 50% (exactly 50% excluded)"
+          }
+        ]
+      },
       "eligiblePositions": null,
       "possession": "Shooter",
       "zone": "—",
       "timeScore": "—",
       "duration": "Per action; no cooldown found.",
-      "stacking": ["ST11"],
-      "cap99": { "fullBonusUpTo": null, "text": "Kicking Power 99 does not disable the motion." },
+      "stacking": [
+        "ST11"
+      ],
+      "cap99": {
+        "fullBonusUpTo": null,
+        "text": "Kicking Power 99 does not disable the motion."
+      },
       "movement": "Avoids the Dipping Shot branch. Backward or acrobatic variants not established.",
       "evidence": "R16 (original conditions, functions and values).",
       "validation": "partial",
-      "uncertainties": ["Effect of the +0.1 coefficient not quantified (not accuracy +10%)"]
+      "uncertainties": [
+        "Effect of the +0.1 coefficient not quantified (not accuracy +10%)"
+      ]
     },
     {
-      "id": "acceleration_burst", "order": 12, "name": "Acceleration Burst", "internalId": "ACCEL_BURST",
-      "anchor": "#12-acceleration-burst", "effectCategory": "motion_parameter",
+      "id": "acceleration_burst",
+      "order": 12,
+      "name": "Acceleration Burst",
+      "internalId": "ACCEL_BURST",
+      "anchor": "#12-acceleration-burst",
+      "effectCategory": "motion_parameter",
       "summary": "Hook-touch motions and motion-calculation parameters. Does not write Speed or Acceleration.",
       "attributes": [],
       "magnitude": "Hook angle (15.5°,120°]; internal speed limit 11→16; normalised TP coefficient +0.1; multiplier 1→1.025",
-      "effects": [{ "kind": "motion", "formula": "acceleration_burst" }],
-      "activation": { "all": [
-        { "fact": "possession", "op": "==", "value": "self", "label": "He is the ball holder" },
-        { "fact": "inputAngle", "op": ">", "value": 15.5, "label": "Input-to-body angle above 15.5°" },
-        { "fact": "inputAngle", "op": "<=", "value": 120, "label": "Angle up to 120°" }
-      ] },
+      "effects": [
+        {
+          "kind": "motion",
+          "formula": "acceleration_burst"
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "possession",
+            "op": "==",
+            "value": "self",
+            "label": "He is the ball holder"
+          },
+          {
+            "fact": "inputAngle",
+            "op": ">",
+            "value": 15.5,
+            "label": "Input-to-body angle above 15.5°"
+          },
+          {
+            "fact": "inputAngle",
+            "op": "<=",
+            "value": 120,
+            "label": "Angle up to 120°"
+          }
+        ]
+      },
       "eligiblePositions": null,
       "possession": "Ball holder",
       "zone": "—",
       "timeScore": "—",
       "duration": "Per motion.",
       "stacking": [],
-      "cap99": { "fullBonusUpTo": null, "text": "Not attribute points." },
+      "cap99": {
+        "fullBonusUpTo": null,
+        "text": "Not attribute points."
+      },
       "movement": "+20 to an evaluation score (capped at 100); +0.2 to a distance-check window; +0.1 to an unnamed dribble-branch field.",
       "evidence": "R17.",
       "validation": "partial",
-      "uncertainties": ["Final acceleration, top speed and cooldown not quantified", "Full input conditions"]
+      "uncertainties": [
+        "Final acceleration, top speed and cooldown not quantified",
+        "Full input conditions"
+      ]
     },
     {
-      "id": "long_reach_tackle", "order": 13, "name": "Long-reach Tackle", "internalId": "PHYSICAL_TACKLE",
-      "anchor": "#13-long-reach-tackle", "effectCategory": "motion_parameter",
+      "id": "long_reach_tackle",
+      "order": 13,
+      "name": "Long-reach Tackle",
+      "internalId": "PHYSICAL_TACKLE",
+      "anchor": "#13-long-reach-tackle",
+      "effectCategory": "motion_parameter",
       "summary": "Enables medium- and long-range standing reach tackles and widens orientation corrections.",
       "attributes": [],
       "magnitude": "+5.625° one-side orientation limit (7 animations); +3 lateral correction limit (3 of them)",
-      "effects": [{ "kind": "motion", "formula": "long_reach_tackle" }],
-      "activation": { "all": [
-        { "fact": "action", "op": "==", "value": "tackle", "label": "Tackle action" }
-      ] },
+      "effects": [
+        {
+          "kind": "motion",
+          "formula": "long_reach_tackle"
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "action",
+            "op": "==",
+            "value": "tackle",
+            "label": "Tackle action"
+          }
+        ]
+      },
       "eligiblePositions": null,
       "possession": "Defending",
       "zone": "—",
       "timeScore": "—",
       "duration": "Per action.",
       "stacking": [],
-      "cap99": { "fullBonusUpTo": null, "text": "Still helps at Tackling 99: not attribute points (there is no '102')." },
+      "cap99": {
+        "fullBonusUpTo": null,
+        "text": "Still helps at Tackling 99: not attribute points (there is no '102')."
+      },
       "movement": "At Tackling 99: limit 11.25°→16.875°; another 22.5°→28.125°; stationary lateral limit 2→5. Expansion branch needs angle ≤ 60°; two other motions need contact angle ≥ 112.5°.",
       "evidence": "R18.",
       "validation": "partial",
-      "uncertainties": ["No universal reach in metres", "Success rate and cooldown not measured"]
+      "uncertainties": [
+        "No universal reach in metres",
+        "Success rate and cooldown not measured"
+      ]
     },
     {
-      "id": "visionary_pass", "order": 14, "name": "Visionary Pass", "internalId": "VISIONARY_PASS",
-      "anchor": "#14-visionary-pass", "effectCategory": "local_ability",
+      "id": "visionary_pass",
+      "order": 14,
+      "name": "Visionary Pass",
+      "internalId": "VISIONARY_PASS",
+      "anchor": "#14-visionary-pass",
+      "effectCategory": "local_ability",
       "summary": "The receiver of his footed pass gets a local +6 to the ability used in the very next action.",
-      "attributes": ["ballControl", "lowPass", "loftedPass", "finishing", "heading"],
+      "attributes": [
+        "ballControl",
+        "lowPass",
+        "loftedPass",
+        "finishing",
+        "heading"
+      ],
       "magnitude": "+6 local (80→86; 99→105); not capped at 99 or 120",
-      "effects": [{ "kind": "local", "target": "receiver", "provider": "visionaryMarker", "bonus": 6, "selectors": { "receive": "ballControl", "pass_ground": "lowPass", "pass_lofted": "loftedPass", "shot_footed": "finishing", "shot_header": "heading" } }],
-      "activation": { "all": [
-        { "fact": "visionaryMarker", "op": "==", "value": true, "label": "Marker active: footed short/through/long pass from a Visionary Pass passer" },
-        { "fact": "markerCleared", "op": "==", "value": false, "label": "No ordinary trap, contact dribble or contact feint before the action" }
-      ] },
+      "effects": [
+        {
+          "kind": "local",
+          "target": "receiver",
+          "provider": "visionaryMarker",
+          "bonus": 6,
+          "selectors": {
+            "receive": "ballControl",
+            "pass_ground": "lowPass",
+            "pass_lofted": "loftedPass",
+            "shot_footed": "finishing",
+            "shot_header": "heading"
+          }
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "visionaryMarker",
+            "op": "==",
+            "value": true,
+            "label": "Marker active: footed short/through/long pass from a Visionary Pass passer"
+          },
+          {
+            "fact": "markerCleared",
+            "op": "==",
+            "value": false,
+            "label": "No ordinary trap, contact dribble or contact feint before the action"
+          }
+        ]
+      },
       "eligiblePositions": null,
       "possession": "Pass receiver",
       "zone": "—",
       "timeScore": "—",
       "duration": "No timer. A new contact record replaces it on release. Moving or waiting without contact does not consume it.",
-      "stacking": ["ST04", "ST07"],
-      "cap99": { "fullBonusUpTo": null, "text": "Local, applied after readback: not capped at 99 or 120." },
+      "stacking": [
+        "ST04",
+        "ST07"
+      ],
+      "cap99": {
+        "fullBonusUpTo": null,
+        "text": "Local, applied after readback: not capped at 99 or 120."
+      },
       "movement": "Headed passes create no marker. A first adjustment touch inside the same animation (≥2 contact points) can keep it.",
       "evidence": "R19 (+6 local and priority), R20 (no timer), R21–R22 (22 marker validation sets).",
       "validation": "constructed_validated",
-      "uncertainties": ["Validated with prepared records, not full motion selection", "Not every feint mapped"]
+      "uncertainties": [
+        "Validated with prepared records, not full motion selection",
+        "Not every feint mapped"
+      ]
     },
     {
-      "id": "bullet_header", "order": 15, "name": "Bullet Header", "internalId": "BULLET_HEADER",
-      "anchor": "#15-bullet-header", "effectCategory": "motion_parameter",
+      "id": "bullet_header",
+      "order": 15,
+      "name": "Bullet Header",
+      "internalId": "BULLET_HEADER",
+      "anchor": "#15-bullet-header",
+      "effectCategory": "motion_parameter",
       "summary": "Five independent effects on headed shots; no universal Heading +N.",
       "attributes": [],
       "magnitude": "Retention 1−0.20r²→1−0.15r²; tier-9 loss 8%→5% / 13%→10%; perturbation 0.4→0.5; max ball speed +4 km/h; contact severity ×0.5",
-      "effects": [{ "kind": "motion", "formula": "bullet_header" }],
-      "activation": { "all": [
-        { "fact": "action", "op": "==", "value": "shot_header", "label": "Headed shot" }
-      ] },
+      "effects": [
+        {
+          "kind": "motion",
+          "formula": "bullet_header"
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "action",
+            "op": "==",
+            "value": "shot_header",
+            "label": "Headed shot"
+          }
+        ]
+      },
       "eligiblePositions": null,
       "possession": "—",
       "zone": "—",
       "timeScore": "—",
       "duration": "Per action.",
-      "stacking": ["ST08"],
-      "cap99": { "fullBonusUpTo": null, "text": "Coexists with ordinary Heading +5: Heading 99 → local 104." },
+      "stacking": [
+        "ST08"
+      ],
+      "cap99": {
+        "fullBonusUpTo": null,
+        "text": "Coexists with ordinary Heading +5: Heading 99 → local 104."
+      },
       "movement": "At Heading 99: max 52→56 km/h; min 10.",
       "evidence": "R23.",
       "validation": "partial",
-      "uncertainties": ["Specific motion IDs not mapped", "Match rates not measured"]
+      "uncertainties": [
+        "Specific motion IDs not mapped",
+        "Match rates not measured"
+      ]
     },
     {
-      "id": "phenomenal_pass", "order": 16, "name": "Phenomenal Pass", "internalId": "PHENOMENAL_PASS",
-      "anchor": "#16-phenomenal-pass", "effectCategory": "local_ability",
+      "id": "phenomenal_pass",
+      "order": 16,
+      "name": "Phenomenal Pass",
+      "internalId": "PHENOMENAL_PASS",
+      "anchor": "#16-phenomenal-pass",
+      "effectCategory": "local_ability",
       "summary": "Special motions: local +6 to Low Pass (ground) or Lofted Pass (lofted), plus error-penalty changes.",
-      "attributes": ["lowPass", "loftedPass"],
+      "attributes": [
+        "lowPass",
+        "loftedPass"
+      ],
       "magnitude": "+6 local (99→105); backward error coefficients 0.3→0.8",
       "effects": [
-        { "kind": "local", "target": "self", "bonus": 6, "selectors": { "pass_ground": "lowPass", "pass_lofted": "loftedPass" } },
-        { "kind": "motion", "formula": "phenomenal_pass" }
+        {
+          "kind": "local",
+          "target": "self",
+          "bonus": 6,
+          "selectors": {
+            "pass_ground": "lowPass",
+            "pass_lofted": "loftedPass"
+          }
+        },
+        {
+          "kind": "motion",
+          "formula": "phenomenal_pass"
+        }
       ],
-      "activation": { "all": [
-        { "fact": "action", "op": "in", "value": ["pass_ground", "pass_lofted"], "label": "Ground or lofted pass (not header, not heel category 8)" },
-        { "fact": "specialMotion", "op": "==", "value": true, "label": "Special motion (metadata 5–7, direction class <5 or >12, tier 2–11, or other documented predicates)" }
-      ] },
+      "activation": {
+        "all": [
+          {
+            "fact": "action",
+            "op": "in",
+            "value": [
+              "pass_ground",
+              "pass_lofted"
+            ],
+            "label": "Ground or lofted pass (not header, not heel category 8)"
+          },
+          {
+            "fact": "specialMotion",
+            "op": "==",
+            "value": true,
+            "label": "Special motion (metadata 5–7, direction class <5 or >12, tier 2–11, or other documented predicates)"
+          }
+        ]
+      },
       "eligiblePositions": null,
       "possession": "Passer",
       "zone": "—",
       "timeScore": "None",
       "duration": "Per action.",
-      "stacking": ["ST04", "ST05", "ST10"],
-      "cap99": { "fullBonusUpTo": null, "text": "99 → local 105 (coef. ≈1.066667). Downstream parameters stay clamped." },
+      "stacking": [
+        "ST04",
+        "ST05",
+        "ST10"
+      ],
+      "cap99": {
+        "fullBonusUpTo": null,
+        "text": "99 → local 105 (coef. ≈1.066667). Downstream parameters stay clamped."
+      },
       "movement": "Classes 4 and 13 (sideways ~90°): ability bonus but no backward-error change. Classes 0,2,15,17 (~135° backward): both. Forward or diagonal-forward alone: no bonus. Skips q-discounts (×0.6, ×0.8, ×0.9). Example q=1: max bound 76.169→77.417 km/h; sideways 77.634→77.984 km/h (bounds, not release speeds).",
       "evidence": "R24.",
       "validation": "partial",
-      "uncertainties": ["Motion IDs not mapped to visible animations"]
+      "uncertainties": [
+        "Motion IDs not mapped to visible animations"
+      ]
     },
     {
-      "id": "phenomenal_finishing", "order": 17, "name": "Phenomenal Finishing", "internalId": "IMPROVISER",
-      "anchor": "#17-phenomenal-finishing", "effectCategory": "local_ability",
+      "id": "phenomenal_finishing",
+      "order": 17,
+      "name": "Phenomenal Finishing",
+      "internalId": "IMPROVISER",
+      "anchor": "#17-phenomenal-finishing",
+      "effectCategory": "local_ability",
       "summary": "Special non-header shooting motions: local Finishing +7 plus error and posture changes.",
-      "attributes": ["finishing"],
+      "attributes": [
+        "finishing"
+      ],
       "magnitude": "+7 local (80→87; 99→106)",
       "effects": [
-        { "kind": "local", "target": "self", "bonus": 7, "selectors": { "shot_footed": "finishing", "stunning_shot": "finishing", "controlled_shot": "finishing" } },
-        { "kind": "motion", "formula": "phenomenal_finishing" }
+        {
+          "kind": "local",
+          "target": "self",
+          "bonus": 7,
+          "selectors": {
+            "shot_footed": "finishing",
+            "stunning_shot": "finishing",
+            "controlled_shot": "finishing"
+          }
+        },
+        {
+          "kind": "motion",
+          "formula": "phenomenal_finishing"
+        }
       ],
-      "activation": { "all": [
-        { "fact": "action", "op": "in", "value": ["shot_footed", "stunning_shot", "controlled_shot"], "label": "Non-header shot" },
-        { "fact": "specialMotion", "op": "==", "value": true, "label": "Special motion (same predicates as Phenomenal Pass)" }
-      ] },
+      "activation": {
+        "all": [
+          {
+            "fact": "action",
+            "op": "in",
+            "value": [
+              "shot_footed",
+              "stunning_shot",
+              "controlled_shot"
+            ],
+            "label": "Non-header shot"
+          },
+          {
+            "fact": "specialMotion",
+            "op": "==",
+            "value": true,
+            "label": "Special motion (same predicates as Phenomenal Pass)"
+          }
+        ]
+      },
       "eligiblePositions": null,
       "possession": "Shooter",
       "zone": "—",
       "timeScore": "—",
       "duration": "Per action.",
-      "stacking": ["ST06", "ST07", "ST09", "ST11"],
-      "cap99": { "fullBonusUpTo": null, "text": "99 → local 106 (coef. ≈1.077778)." },
+      "stacking": [
+        "ST06",
+        "ST07",
+        "ST09",
+        "ST11"
+      ],
+      "cap99": {
+        "fullBonusUpTo": null,
+        "text": "99 → local 106 (coef. ≈1.077778)."
+      },
       "movement": "Posture retention (severity 1): 0.90 at effective 99, ≈0.946667 at 106; weight 0 at 114. Acrobatic error ×0.9 (×0.8 with Acrobatic Finishing). Other backward error: acrobatic ×0.7 (×0.4 with AF); other categories ×0.2.",
       "evidence": "R25; R15 (correction of earlier posture conclusions).",
       "validation": "partial",
-      "uncertainties": ["Motion IDs and match rates not measured"]
+      "uncertainties": [
+        "Motion IDs and match rates not measured"
+      ]
     },
     {
-      "id": "game_changing_pass", "order": 18, "name": "Game-changing Pass", "internalId": "GAME_CHANGING_PASS",
-      "anchor": "#18-game-changing-pass", "effectCategory": "temporary_attribute",
+      "id": "game_changing_pass",
+      "order": 18,
+      "name": "Game-changing Pass",
+      "internalId": "GAME_CHANGING_PASS",
+      "anchor": "#18-game-changing-pass",
+      "effectCategory": "temporary_attribute",
       "summary": "Low Pass +6 and Lofted Pass +6 in the 2nd half or later while level or behind.",
-      "attributes": ["lowPass", "loftedPass"],
+      "attributes": [
+        "lowPass",
+        "loftedPass"
+      ],
       "magnitude": "+6 each",
-      "effects": [{ "kind": "temp", "target": "self", "attrs": ["lowPass", "loftedPass"], "amount": 6 }],
-      "activation": { "all": [
-        { "fact": "half", "op": ">=", "value": 2, "label": "2nd half or later" },
-        { "fact": "scoreState", "op": "in", "value": ["level", "behind"], "label": "Level or behind (regulation + extra time, no shootout)" }
-      ] },
+      "effects": [
+        {
+          "kind": "temp",
+          "target": "self",
+          "attrs": [
+            "lowPass",
+            "loftedPass"
+          ],
+          "amount": 6
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "half",
+            "op": ">=",
+            "value": 2,
+            "label": "2nd half or later"
+          },
+          {
+            "fact": "scoreState",
+            "op": "in",
+            "value": [
+              "level",
+              "behind"
+            ],
+            "label": "Level or behind (regulation + extra time, no shootout)"
+          }
+        ]
+      },
       "eligiblePositions": null,
       "possession": "None",
       "zone": "None",
       "timeScore": "2nd half or later; drawing or losing",
       "duration": "Off when the team takes the lead; back on when level or behind.",
       "stacking": [],
-      "cap99": { "fullBonusUpTo": 93, "text": "Full bonus up to 93 before the cap." },
+      "cap99": {
+        "fullBonusUpTo": 93,
+        "text": "Full bonus up to 93 before the cap."
+      },
       "movement": null,
       "evidence": "R26 (score, half, +6, 99 and readback validation).",
       "validation": "constructed_validated",
       "uncertainties": []
     },
     {
-      "id": "edged_crossing", "order": 19, "name": "Edged Crossing", "internalId": "BLITZ_CROSSING",
-      "anchor": "#19-edged-crossing", "effectCategory": "motion_parameter",
+      "id": "edged_crossing",
+      "order": 19,
+      "name": "Edged Crossing",
+      "internalId": "BLITZ_CROSSING",
+      "anchor": "#19-edged-crossing",
+      "effectCategory": "motion_parameter",
       "summary": "Selects motion 80: a high, sharply dipping cross with its own spin and launch angle.",
       "attributes": [],
       "magnitude": "Launch angle +3.8° or +2.5° (clamped 0–31°); spin components 4.6/−3.6 or 3.4−N(d,25,30)/−2.4",
-      "effects": [{ "kind": "motion", "formula": "edged_crossing" }],
-      "activation": { "all": [
-        { "fact": "action", "op": "==", "value": "cross", "label": "Cross (context 4/5/6 with cross flag, command mode 19)" },
-        { "fact": "ballSpeedBeforeKick", "op": "<", "value": 30, "label": "Ball speed before the kick below 30 km/h" },
-        { "fact": "distance", "op": ">=", "value": 12, "label": "Planned distance ≥ 12 m" },
-        { "fact": "distance", "op": "<=", "value": 32, "label": "Planned distance ≤ 32 m" }
-      ] },
+      "effects": [
+        {
+          "kind": "motion",
+          "formula": "edged_crossing"
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "action",
+            "op": "==",
+            "value": "cross",
+            "label": "Cross (context 4/5/6 with cross flag, command mode 19)"
+          },
+          {
+            "fact": "ballSpeedBeforeKick",
+            "op": "<",
+            "value": 30,
+            "label": "Ball speed before the kick below 30 km/h"
+          },
+          {
+            "fact": "distance",
+            "op": ">=",
+            "value": 12,
+            "label": "Planned distance ≥ 12 m"
+          },
+          {
+            "fact": "distance",
+            "op": "<=",
+            "value": 32,
+            "label": "Planned distance ≤ 32 m"
+          }
+        ]
+      },
       "eligiblePositions": null,
       "possession": "Crosser",
       "zone": "—",
       "timeScore": "—",
       "duration": "Per action.",
       "stacking": [],
-      "cap99": { "fullBonusUpTo": null, "text": "No Lofted Pass or Curl bonus (tested with 80 and 99)." },
+      "cap99": {
+        "fullBonusUpTo": null,
+        "text": "No Lofted Pass or Curl bonus (tested with 80 and 99)."
+      },
       "movement": "Foot chosen from preferred foot and Weak Foot Accuracy; motion 80 needs resources.",
       "evidence": "R27 (conditions and trajectory), R28 (ball-speed recheck).",
       "validation": "partial",
-      "uncertainties": ["Ball-speed increase NOT confirmed (12 identical sets)", "Flags not fully mapped"]
+      "uncertainties": [
+        "Ball-speed increase NOT confirmed (12 identical sets)",
+        "Flags not fully mapped"
+      ]
     },
     {
-      "id": "blitz_curler", "order": 20, "name": "Blitz Curler", "internalId": "BLITZ_CURLER",
-      "anchor": "#20-blitz-curler", "effectCategory": "motion_parameter",
+      "id": "blitz_curler",
+      "order": 20,
+      "name": "Blitz Curler",
+      "internalId": "BLITZ_CURLER",
+      "anchor": "#20-blitz-curler",
+      "effectCategory": "motion_parameter",
       "summary": "A type-10 Controlled Shot at 50%+ power selects motion 160 with a power remap and extra launch angle.",
       "attributes": [],
       "magnitude": "Local power 0.7 + 0.3·N(input,0.5,1); extra angle R(d)·[0.8 + 0.2C(Curl) + 0.1(1 − (KP−40)/59.9)]",
-      "effects": [{ "kind": "motion", "formula": "blitz_curler" }],
-      "activation": { "all": [
-        { "fact": "action", "op": "==", "value": "controlled_shot", "label": "Controlled Shot (type 10)" },
-        { "fact": "shotPower", "op": ">=", "value": 0.5, "label": "Power ≥ 50% (included)" },
-        { "fact": "distance", "op": "<=", "value": 35, "label": "Planned distance ≤ 35 m" },
-        { "fact": "lateralTarget", "op": ">=", "value": 1, "label": "|Lateral target| ≥ 1 m" },
-        { "fact": "releaseAngle", "op": ">=", "value": -20, "label": "Release angle after mirroring ≥ −20°" }
-      ] },
+      "effects": [
+        {
+          "kind": "motion",
+          "formula": "blitz_curler"
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "action",
+            "op": "==",
+            "value": "controlled_shot",
+            "label": "Controlled Shot (type 10)"
+          },
+          {
+            "fact": "shotPower",
+            "op": ">=",
+            "value": 0.5,
+            "label": "Power ≥ 50% (included)"
+          },
+          {
+            "fact": "distance",
+            "op": "<=",
+            "value": 35,
+            "label": "Planned distance ≤ 35 m"
+          },
+          {
+            "fact": "lateralTarget",
+            "op": ">=",
+            "value": 1,
+            "label": "|Lateral target| ≥ 1 m"
+          },
+          {
+            "fact": "releaseAngle",
+            "op": ">=",
+            "value": -20,
+            "label": "Release angle after mirroring ≥ −20°"
+          }
+        ]
+      },
       "eligiblePositions": null,
       "possession": "Shooter",
       "zone": "—",
       "timeScore": "—",
       "duration": "Per action.",
       "stacking": [],
-      "cap99": { "fullBonusUpTo": null, "text": "Finishing or Curl 99 does not cancel the motion." },
+      "cap99": {
+        "fullBonusUpTo": null,
+        "text": "Finishing or Curl 99 does not cancel the motion."
+      },
       "movement": "Foot checks: preferred foot, weak-foot accuracy/usage, allowed-foot mask. Same-side wide case: deviation ≤ 10°. Exclusion flag c0 must be 0.",
       "evidence": "R27.",
       "validation": "partial",
-      "uncertainties": ["Meaning of c0", "Match reach and scoring not measured"]
+      "uncertainties": [
+        "Meaning of c0",
+        "Match reach and scoring not measured"
+      ]
     },
     {
-      "id": "magnetic_feet", "order": 21, "name": "Magnetic Feet", "internalId": "BREAKTHROUGH_DRIBBLE",
-      "anchor": "#21-magnetic-feet", "effectCategory": "temporary_attribute",
+      "id": "magnetic_feet",
+      "order": 21,
+      "name": "Magnetic Feet",
+      "internalId": "BREAKTHROUGH_DRIBBLE",
+      "anchor": "#21-magnetic-feet",
+      "effectCategory": "temporary_attribute",
       "summary": "Dribbling, Tight Possession, Physical Contact and Balance +2 per nearby opponent (max 4) while holding the ball.",
-      "attributes": ["dribbling", "tightPossession", "physicalContact", "balance"],
+      "attributes": [
+        "dribbling",
+        "tightPossession",
+        "physicalContact",
+        "balance"
+      ],
       "magnitude": "+2 × min(opponents, 4) → up to +8",
-      "effects": [{ "kind": "temp_scaled", "target": "self", "attrs": ["dribbling", "tightPossession", "physicalContact", "balance"], "perUnit": 2, "fact": "nearbyOpponents", "maxUnits": 4 }],
-      "activation": { "all": [
-        { "fact": "possession", "op": "==", "value": "self", "label": "Registered ball holder (a nearby loose ball does not count)" },
-        { "fact": "nearbyOpponents", "op": ">=", "value": 1, "label": "≥1 active opponent at horizontal distance 0 < d < 5 m (boundary excluded; teammates do not count)" }
-      ] },
+      "effects": [
+        {
+          "kind": "temp_scaled",
+          "target": "self",
+          "attrs": [
+            "dribbling",
+            "tightPossession",
+            "physicalContact",
+            "balance"
+          ],
+          "perUnit": 2,
+          "fact": "nearbyOpponents",
+          "maxUnits": 4
+        }
+      ],
+      "activation": {
+        "all": [
+          {
+            "fact": "possession",
+            "op": "==",
+            "value": "self",
+            "label": "Registered ball holder (a nearby loose ball does not count)"
+          },
+          {
+            "fact": "nearbyOpponents",
+            "op": ">=",
+            "value": 1,
+            "label": "≥1 active opponent at horizontal distance 0 < d < 5 m, not in the 180° blind spot directly behind (datamine)"
+          }
+        ]
+      },
       "eligiblePositions": null,
       "possession": "Ball holder",
       "zone": "Radius < 5 m around the player",
       "timeScore": "None; no sprint requirement",
       "duration": "Recalculated from nearby opponents.",
       "stacking": [],
-      "cap99": { "fullBonusUpTo": 91, "text": "1 opponent: up to 97; 2: 95; 3: 93; 4+: 91. 90+8=98; 95+8=99; 99+8=99." },
+      "cap99": {
+        "fullBonusUpTo": 91,
+        "text": "1 opponent: up to 97; 2: 95; 3: 93; 4+: 91. 90+8=98; 95+8=99; 99+8=99."
+      },
       "movement": "Speed, Acceleration and Ball Control are not affected. The angle check only excludes exactly 180°.",
-      "evidence": "R29: 112 activation, 9 boundary and 360 addition/readback checks (481 total).",
+      "evidence": "R29: 112 activation, 9 boundary and 360 addition/readback checks (481 total). Datamine: 180° rear blind spot; base ≤ 91 for the full +8.",
       "validation": "constructed_validated",
-      "uncertainties": ["No installed-game, full-match or frame-timing test"]
+      "uncertainties": [
+        "No installed-game, full-match or frame-timing test"
+      ]
     }
   ],
   "auxiliarySkills": [
     {
-      "id": "ordinary_passing", "name": "Ordinary passing skill (+5)", "kind": "aux",
-      "effects": [{ "kind": "local", "target": "self", "bonus": 5, "selectors": { "pass_ground": "lowPass", "pass_lofted": "loftedPass" } }],
-      "aliases": [],
-      "note": "The article mentions 'ordinary passing +5' in combination rules but does NOT list which skills. Toggle it manually in scenarios."
+      "id": "ordinary_passing",
+      "name": "Through Passing (+5 local)",
+      "kind": "aux",
+      "effects": [
+        {
+          "kind": "local",
+          "target": "self",
+          "bonus": 5,
+          "selectors": {
+            "pass_ground": "lowPass",
+            "pass_lofted": "loftedPass"
+          }
+        }
+      ],
+      "aliases": [
+        "Through Passing"
+      ],
+      "note": "Article: ordinary passing +5 (local). Datamine (libUE4.so): Through Passing is a hybrid +5 applied to random deviation, trajectory and lofted apex on through passes; the turn animation uses the base stat.",
+      "source": "eFHUB article + datamine slides"
     },
     {
-      "id": "ordinary_shooting", "name": "Ordinary shooting skill (+5)", "kind": "aux",
-      "effects": [{ "kind": "local", "target": "self", "bonus": 5, "selectors": { "shot_footed": "finishing", "stunning_shot": "finishing", "controlled_shot": "finishing" } }],
+      "id": "ordinary_shooting",
+      "name": "Ordinary shooting skill (+5)",
+      "kind": "aux",
+      "effects": [
+        {
+          "kind": "local",
+          "target": "self",
+          "bonus": 5,
+          "selectors": {
+            "shot_footed": "finishing",
+            "stunning_shot": "finishing",
+            "controlled_shot": "finishing"
+          }
+        }
+      ],
       "aliases": [],
       "note": "The article mentions 'ordinary shooting +5' (Phenomenal Finishing: +7, not +12) without listing skills."
     },
     {
-      "id": "ordinary_heading", "name": "Heading (+5 local)", "kind": "aux",
-      "effects": [{ "kind": "local", "target": "self", "bonus": 5, "selectors": { "shot_header": "heading" } }],
-      "aliases": ["Heading"],
+      "id": "ordinary_heading",
+      "name": "Heading (+5 local)",
+      "kind": "aux",
+      "effects": [
+        {
+          "kind": "local",
+          "target": "self",
+          "bonus": 5,
+          "selectors": {
+            "shot_header": "heading"
+          }
+        }
+      ],
+      "aliases": [
+        "Heading"
+      ],
       "note": "'Ordinary Heading local +5 coexists: Heading 99 becomes local 104.'"
     }
   ],
   "stackingRules": [
-    { "id": "ST01", "skills": ["fortress", "super_sub"], "rule": "additive", "status": "documented", "text": "They add up: the 4 defensive stats get +7; the other 21 get +1." },
-    { "id": "ST02", "skills": ["momentum_dribbling", "attacking_surge"], "rule": "mutually_exclusive", "status": "documented", "text": "Cannot both give Speed/Acceleration (+9) in the same possession check (holder vs teammate holder)." },
-    { "id": "ST03", "skills": ["gk_directing_defence", "gk_spirit_roar"], "rule": "additive_distinct", "status": "documented", "text": "Five different stats get +2 each (no +4 on any)." },
-    { "id": "ST04", "skills": ["visionary_pass", "phenomenal_pass"], "rule": "max_local", "status": "documented", "text": "Same selector: +6 only once." },
-    { "id": "ST05", "skills": ["ordinary_passing", "phenomenal_pass"], "rule": "max_local", "status": "documented", "text": "+6 only (not +11)." },
-    { "id": "ST06", "skills": ["ordinary_shooting", "phenomenal_finishing"], "rule": "max_local", "status": "documented", "text": "+7 only (not +12)." },
-    { "id": "ST07", "skills": ["visionary_pass", "phenomenal_finishing"], "rule": "max_local", "status": "documented", "text": "+7 takes priority (not +13)." },
-    { "id": "ST08", "skills": ["ordinary_heading", "bullet_header"], "rule": "coexist", "status": "documented", "text": "They coexist; Bullet Header adds no fixed Heading (99 → local 104 from the ordinary +5)." },
-    { "id": "ST09", "skills": ["acrobatic_finishing", "phenomenal_finishing"], "rule": "no_add_multiplier_interaction", "status": "documented", "text": "No +12; error multipliers interact (×0.9→×0.8; ×0.7→×0.4)." },
-    { "id": "ST10", "skills": ["one_touch_pass", "phenomenal_pass"], "rule": "coexist", "status": "documented", "text": "One-touch ×0.9 coexists." },
-    { "id": "ST11", "skills": ["phenomenal_finishing", "low_screamer"], "rule": "possible_local", "status": "uncertain", "text": "Local checks intersect in resources; match reachability not guaranteed." }
+    {
+      "id": "ST01",
+      "skills": [
+        "fortress",
+        "super_sub"
+      ],
+      "rule": "additive",
+      "status": "documented",
+      "text": "They add up: the 4 defensive stats get +7; the other 21 get +1."
+    },
+    {
+      "id": "ST02",
+      "skills": [
+        "momentum_dribbling",
+        "attacking_surge"
+      ],
+      "rule": "mutually_exclusive",
+      "status": "documented",
+      "text": "Cannot both give Speed/Acceleration (+9) in the same possession check (holder vs teammate holder)."
+    },
+    {
+      "id": "ST03",
+      "skills": [
+        "gk_directing_defence",
+        "gk_spirit_roar"
+      ],
+      "rule": "additive_distinct",
+      "status": "documented",
+      "text": "Five different stats get +2 each (no +4 on any)."
+    },
+    {
+      "id": "ST04",
+      "skills": [
+        "visionary_pass",
+        "phenomenal_pass"
+      ],
+      "rule": "max_local",
+      "status": "documented",
+      "text": "Same selector: +6 only once."
+    },
+    {
+      "id": "ST05",
+      "skills": [
+        "ordinary_passing",
+        "phenomenal_pass"
+      ],
+      "rule": "max_local",
+      "status": "documented",
+      "text": "+6 only (not +11)."
+    },
+    {
+      "id": "ST06",
+      "skills": [
+        "ordinary_shooting",
+        "phenomenal_finishing"
+      ],
+      "rule": "max_local",
+      "status": "documented",
+      "text": "+7 only (not +12)."
+    },
+    {
+      "id": "ST07",
+      "skills": [
+        "visionary_pass",
+        "phenomenal_finishing"
+      ],
+      "rule": "max_local",
+      "status": "documented",
+      "text": "+7 takes priority (not +13)."
+    },
+    {
+      "id": "ST08",
+      "skills": [
+        "ordinary_heading",
+        "bullet_header"
+      ],
+      "rule": "coexist",
+      "status": "documented",
+      "text": "They coexist; Bullet Header adds no fixed Heading (99 → local 104 from the ordinary +5)."
+    },
+    {
+      "id": "ST09",
+      "skills": [
+        "acrobatic_finishing",
+        "phenomenal_finishing"
+      ],
+      "rule": "no_add_multiplier_interaction",
+      "status": "documented",
+      "text": "No +12; error multipliers interact (×0.9→×0.8; ×0.7→×0.4)."
+    },
+    {
+      "id": "ST10",
+      "skills": [
+        "one_touch_pass",
+        "phenomenal_pass"
+      ],
+      "rule": "coexist",
+      "status": "documented",
+      "text": "One-touch ×0.9 coexists."
+    },
+    {
+      "id": "ST11",
+      "skills": [
+        "phenomenal_finishing",
+        "low_screamer"
+      ],
+      "rule": "possible_local",
+      "status": "uncertain",
+      "text": "Local checks intersect in resources; match reachability not guaranteed."
+    }
   ],
   "defaultRules": {
-    "temporaryDifferentSkills": { "rule": "additive", "status": "hypothesis", "text": "Adding temporary bonuses from different skills on the same stat is only confirmed for Fortress + Super-sub. Other pairs are added as a HYPOTHESIS." },
-    "localSameSelector": { "rule": "max", "status": "hypothesis_generalized", "text": "Documented pairs take the maximum. Unlisted pairs (e.g. Visionary +6 vs Heading +5) use 'maximum' as a HYPOTHESIS." },
-    "competingErrorScores": { "rule": "max_then_random", "status": "documented", "text": "Competing error scores: the maximum is taken, then a random check." }
+    "temporaryDifferentSkills": {
+      "rule": "additive",
+      "status": "hypothesis",
+      "text": "Adding temporary bonuses from different skills on the same stat is only confirmed for Fortress + Super-sub. Other pairs are added as a HYPOTHESIS."
+    },
+    "localSameSelector": {
+      "rule": "max",
+      "status": "hypothesis_generalized",
+      "text": "Documented pairs take the maximum. Unlisted pairs (e.g. Visionary +6 vs Heading +5) use 'maximum' as a HYPOTHESIS."
+    },
+    "competingErrorScores": {
+      "rule": "max_then_random",
+      "status": "documented",
+      "text": "Competing error scores: the maximum is taken, then a random check."
+    }
   }
 }

@@ -37,7 +37,7 @@ function cardCtx(D, card) {
   ui.ctxByCard ??= {};
   return (ui.ctxByCard[card.id] ??= {
     condition: 'C', opponents: 2, managerId: null, playstyle: 'quickCounter', proficiency: 70,
-    active: withoutConflicts(toggleableSkills(card, D.skills).filter((t) => !t.fromTeammate && t.kind !== 'local').map((t) => t.id)),
+    active: withoutConflicts(toggleableSkills(card, D.skills).filter((t) => !t.fromTeammate).map((t) => t.id)),
   });
 }
 
@@ -237,7 +237,7 @@ export function render(root, app, opts = {}) {
     b.extraSkills[Number(el.dataset.slot)] = el.value || null;
     const c = cardCtx(D, withExtraSkills(baseCard, b));
     const now = withExtraSkills(baseCard, b);
-    const ids = [...toggleableSkills(now, D.skills).filter((t) => !t.fromTeammate && t.id && now.skills.some((s) => s.toLowerCase() === t.name.toLowerCase() || (t.id === 'ordinary_heading' && s === 'Heading'))).map((t) => t.id)];
+    const ids = [...toggleableSkills(now, D.skills).filter((t) => !t.fromTeammate && t.id && now.skills.some((s) => s.toLowerCase() === t.name.toLowerCase() || (D.skills.auxiliarySkills.find((a) => a.id === t.id)?.aliases ?? []).includes(s))).map((t) => t.id)];
     for (const id of ids) if (!c.active.includes(id)) c.active = toggleSkill(c.active, id);
     app.update();
   }));
@@ -309,7 +309,7 @@ function toggleSkill(active, id) {
 
 function breakdownCard(app, card, b, alloc) {
   const { D } = app;
-  const toggles = toggleableSkills(card, D.skills).filter((t) => t.kind !== 'local'); // action-only bonuses are not shown
+  const toggles = toggleableSkills(card, D.skills);
   const ctx = cardCtx(D, card);
   ui.ctx = ctx;
   ctx.active = ctx.active.filter((id) => toggles.some((t) => t.id === id));
@@ -357,7 +357,7 @@ function breakdownCard(app, card, b, alloc) {
     <div class="legend2">${SRC.map(([k, l, t]) => `<span title="${esc(t)}"><i class="dot2 s-${k}"></i>${l}</span>`).join('')}<span><i class="capmark"></i>99 cap</span></div>
 
     <div class="xscroll"><table class="bk">
-      <thead><tr><th>Stat</th><th class="n">Base</th><th class="n t-prog">Train</th><th class="n t-boost">Boost</th><th class="n t-mgr">Mgr</th><th class="n ingame" title="What the game shows: base + training + booster + manager">In-game</th><th class="n t-cond">Cond</th><th class="n t-skill" title="In-match stat bonus while the skill is active (goes through the 99 cap)">Skill</th><th class="n">Final</th><th style="width:34%"></th></tr></thead>
+      <thead><tr><th>Stat</th><th class="n">Base</th><th class="n t-prog">Train</th><th class="n t-boost">Boost</th><th class="n t-mgr">Mgr</th><th class="n ingame" title="What the game shows: base + training + booster + manager">In-game</th><th class="n t-cond">Cond</th><th class="n t-skill" title="+N: in-match stat bonus while active (through the 99 cap, counts in Final). ⚡+N: bonus for one action only (after the cap, ceiling 127, not in Final)">Skill</th><th class="n">Final</th><th style="width:34%"></th></tr></thead>
       <tbody>${Object.entries(GROUPS).map(([g, attrs]) => `<tr class="grp"><td colspan="10">${g}</td></tr>${attrs.map((a) => {
         const r = rows[a];
         const lost = r.capLoss + Math.max(0, r.B - 99);
@@ -369,7 +369,7 @@ function breakdownCard(app, card, b, alloc) {
           ${cell(r.mgr, 'mgr', `Proficiency +${r.mgrProf}${r.mgrBoost ? ` · manager boost +${r.mgrBoost}` : ''}`)}
           <td class="n ingame"><b class="${statColor(r.ingame)}">${r.ingame}</b></td>
           ${cell(r.cond, r.cond < 0 ? 'neg' : 'cond', 'Condition arrow')}
-          ${r.skill ? `<td class="n t-skill" title="${esc(r.sources.join(', '))}">+${r.skill}</td>` : '<td class="n dim">·</td>'}
+          ${r.skill || r.actionBonus ? `<td class="n t-skill" title="${esc([...(r.skill ? [r.sources.join(', ')] : []), ...(r.actionBonus ? [`${r.actionSource} +${r.actionBonus} on that action only → ${r.local} (after the 99 cap, ceiling 127; not in Final)`] : [])].join(' · '))}">${r.skill ? `+${r.skill}` : ''}${r.actionBonus ? `<span class="zapv">⚡+${r.actionBonus}</span>` : ''}</td>` : '<td class="n dim">·</td>'}
           <td class="n"><b class="final ${statColor(r.extended)} ${r.ordinary >= 99 ? 'is-max' : ''}">${r.extended}</b></td>
           <td>${bar(r, bpsByStat[a])}</td></tr>`;
       }).join('')}`).join('')}</tbody>

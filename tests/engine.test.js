@@ -151,15 +151,15 @@ export function register(D) {
       ok((r.tempAdds.speed ?? 0) !== 9, `possession ${possession}`);
     }
   });
-  test('GK Directing Defence + GK Spirit Roar: 5 different stats +2 (none +4)', () => {
+  test('GK Directing Defence + GK Spirit Roar: 5 different stats +2 (none +4; Directing = Awareness + Tackling, datamine)', () => {
     const r = resolve([], { role: 'CB', player: { x: -20, y: 0 }, gkDirectingDefence: true, gkSpiritRoar: true, half: 2, scoreState: 'ahead' });
-    for (const a of ['defensiveAwareness', 'aggression', 'physicalContact', 'jump', 'acceleration']) eq(r.tempAdds[a], 2, a);
+    for (const a of ['defensiveAwareness', 'tackling', 'physicalContact', 'jump', 'acceleration']) eq(r.tempAdds[a], 2, a);
     eq(Object.keys(r.tempAdds).length, 5);
   });
   test('GK Directing Defence: x = −18 yes, −17.9 no; DMF not eligible', () => {
-    eq(resolve([], { role: 'LB', player: { x: -18, y: 0 }, gkDirectingDefence: true }).tempAdds.aggression, 2);
-    eq(resolve([], { role: 'LB', player: { x: -17.9, y: 0 }, gkDirectingDefence: true }).tempAdds.aggression, undefined);
-    eq(resolve([], { role: 'DMF', player: { x: -30, y: 0 }, gkDirectingDefence: true }).tempAdds.aggression, undefined);
+    eq(resolve([], { role: 'LB', player: { x: -18, y: 0 }, gkDirectingDefence: true }).tempAdds.tackling, 2);
+    eq(resolve([], { role: 'LB', player: { x: -17.9, y: 0 }, gkDirectingDefence: true }).tempAdds.tackling, undefined);
+    eq(resolve([], { role: 'DMF', player: { x: -30, y: 0 }, gkDirectingDefence: true }).tempAdds.tackling, undefined);
   });
   test('GK Spirit Roar: a draw does not qualify', () => {
     eq(resolve([], { role: 'CB', gkSpiritRoar: true, half: 2, scoreState: 'level' }).tempAdds.jump, undefined);
@@ -197,7 +197,8 @@ export function register(D) {
     eq(countNearbyOpponents(p, [{ x: 5, y: 0 }]), 0);
     eq(countNearbyOpponents(p, [{ x: 4.99, y: 0 }]), 1);
     eq(countNearbyOpponents(p, [{ x: 0, y: 0 }]), 0);
-    eq(countNearbyOpponents(p, [{ x: 3, y: 3 }, { x: -2, y: 1 }, { x: 10, y: 0 }]), 2);
+    eq(countNearbyOpponents(p, [{ x: 3, y: 3 }, { x: -2, y: 1 }, { x: 10, y: 0 }]), 1); // (-2,1) is in the rear blind spot
+    eq(countNearbyOpponents({ ...p, facing: 180 }, [{ x: -2, y: 1 }, { x: 2, y: 0 }]), 1); // facing own goal: front/back swap
   });
   test('Magnetic Feet: a nearby loose ball does not count (must be holder)', () => {
     eq(resolve(['magnetic_feet'], { possession: 'none', nearbyOpponentsOverride: 3 }).tempAdds.dribbling, undefined);
@@ -457,5 +458,14 @@ export function register(D) {
     const score = makeObjective({ card, prog, mech, weights: weightsFor(roles, 'CB', 'auto'), states: [{ prob: 1, temp: {}, ids: [] }], targets: targetsFor(roles, 'CB') });
     const g = score({ dexterity: 4, lowerBody: 6 }, true).goals.map((x) => `${x.stat}${x.at}`);
     ok(g.includes('acceleration80') && g.includes('speed80'), g.join(','));
+  });
+  test('Datamine: action-local ceiling 127; Through Passing = ordinary passing +5', () => {
+    eq(pipelineValue({ base: 99, postCap: 20, local: 7 }, mech.caps).local, 126);
+    eq(pipelineValue({ base: 99, postCap: 21, local: 9 }, mech.caps).local, 127);
+    const tp = db.auxiliarySkills.find((a) => a.id === 'ordinary_passing');
+    ok(tp.aliases.includes('Through Passing'), 'alias');
+    const card = flatCard(85, { skills: ['Through Passing'], position: 'CMF' });
+    const r = statBreakdown(card, prog, {}, mech, db, { active: ['ordinary_passing'] }).lowPass;
+    eq(r.actionBonus, 5); eq(r.local, 90); eq(r.extended, 85);
   });
 }

@@ -15,20 +15,118 @@
       "7. Stored in the match record"
     ]
   },
-  "caps": { "ordinaryMin": 40, "ordinaryMax": 99, "extendedMax": 120, "status": "documented" },
+  "caps": {
+    "ordinaryMin": 40,
+    "ordinaryMax": 99,
+    "extendedMax": 120,
+    "status": "documented",
+    "localMax": 127,
+    "localMaxStatus": "datamine (libUE4.so): action-local values have an effective ceiling of 127"
+  },
   "conditionArrows": {
     "status": "documented",
     "anchor": "#diagonal-up-and-straight-up-arrows-",
     "note": "Applied to base values; temporary skills do not trigger extra arrow bonuses. Aggression is not in the list. GK stats are skipped for non-GK original positions. The arrow UI itself was not run in the study.",
-    "levels": ["E", "D", "C", "B", "A"],
-    "levelLabels": { "E": "Very bad (↓)", "D": "Bad (↘)", "C": "Normal (→)", "B": "Good (↗)", "A": "Excellent (↑)" },
+    "levels": [
+      "E",
+      "D",
+      "C",
+      "B",
+      "A"
+    ],
+    "levelLabels": {
+      "E": "Very bad (↓)",
+      "D": "Bad (↘)",
+      "C": "Normal (→)",
+      "B": "Good (↗)",
+      "A": "Excellent (↑)"
+    },
     "levelMappingStatus": "inferred",
     "levelMappingNote": "The article gives 5-condition tables (groups 0–2) without naming them. The worst→best order and group 0=Awareness, 1=Technical, 2=Physical are INFERRED because the B/A values match the named table exactly (10/15, 6/11, 3/6 at 60; 2/3, 1/2, 1/2 at 95).",
-    "ratingRange": [60, 95],
+    "ratingRange": [
+      60,
+      95
+    ],
     "groups": {
-      "awareness": { "attrs": ["offensiveAwareness", "defensiveAwareness", "defensiveEngagement", "gkAwareness"], "at60": [-2, -1, 0, 10, 15], "at95": [-5, -3, 0, 2, 3] },
-      "technical": { "attrs": ["dribbling", "ballControl", "tightPossession", "finishing", "lowPass", "loftedPass", "heading", "tackling", "placeKicking", "curl", "gkCatching", "gkParrying", "gkReflexes", "gkReach"], "at60": [-3, -2, 0, 6, 11], "at95": [-9, -5, 0, 1, 2] },
-      "physical": { "attrs": ["speed", "acceleration", "kickingPower", "jump", "physicalContact", "balance", "stamina"], "at60": [-5, -3, 0, 3, 6], "at95": [-12, -8, 0, 1, 2] }
+      "awareness": {
+        "attrs": [
+          "offensiveAwareness",
+          "defensiveAwareness",
+          "defensiveEngagement",
+          "gkAwareness"
+        ],
+        "at60": [
+          -2,
+          -1,
+          0,
+          10,
+          15
+        ],
+        "at95": [
+          -5,
+          -3,
+          0,
+          2,
+          3
+        ]
+      },
+      "technical": {
+        "attrs": [
+          "dribbling",
+          "ballControl",
+          "tightPossession",
+          "finishing",
+          "lowPass",
+          "loftedPass",
+          "heading",
+          "tackling",
+          "placeKicking",
+          "curl",
+          "gkCatching",
+          "gkParrying",
+          "gkReflexes",
+          "gkReach"
+        ],
+        "at60": [
+          -3,
+          -2,
+          0,
+          6,
+          11
+        ],
+        "at95": [
+          -9,
+          -5,
+          0,
+          1,
+          2
+        ]
+      },
+      "physical": {
+        "attrs": [
+          "speed",
+          "acceleration",
+          "kickingPower",
+          "jump",
+          "physicalContact",
+          "balance",
+          "stamina"
+        ],
+        "at60": [
+          -5,
+          -3,
+          0,
+          3,
+          6
+        ],
+        "at95": [
+          -12,
+          -8,
+          0,
+          1,
+          2
+        ]
+      }
     },
     "interpolation": "t = clamp((rating − 60)/35, 0, 1); delta = trunc(lerp(at60, at95, t)) toward zero; value = clamp(base + delta, 40, 99)",
     "ratingNote": "The base positional rating uses card fields with Boosters off; it is not the squad-screen Overall."
@@ -38,7 +136,23 @@
     "anchor": "#an-89-manager-",
     "note": "Only the table for a manager with proficiency 89 is documented. Other levels are not. The manager-selection model was not reproduced. The article does not say which stats get the adjustment: by default it is applied to all (HYPOTHESIS).",
     "tables": {
-      "89": [ { "min": 40, "max": 55, "delta": 1 }, { "min": 56, "max": 83, "delta": 2 }, { "min": 84, "max": 99, "delta": 3 } ]
+      "89": [
+        {
+          "min": 40,
+          "max": 55,
+          "delta": 1
+        },
+        {
+          "min": 56,
+          "max": 83,
+          "delta": 2
+        },
+        {
+          "min": 84,
+          "max": 99,
+          "delta": 3
+        }
+      ]
     },
     "referenceRule": "The delta is computed from the reference value (base with training, no condition or skills). A temporary skill does not change the reference or cross thresholds. Training can change the reference.",
     "appliesToStatus": "hypothesis"

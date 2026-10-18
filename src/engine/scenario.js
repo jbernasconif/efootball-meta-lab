@@ -52,9 +52,13 @@ export function inBox(p, pitch) {
 
 export function countNearbyOpponents(player, opponents) {
   // Article: horizontal distance strictly between 0 and 5 (boundary excluded).
+  // Datamine: 180° blind spot directly behind the player. Facing = player.facing in degrees
+  // (0 = towards the opponent goal, the default for a ball holder; assumption when not set).
+  const f = ((player.facing ?? 0) * Math.PI) / 180;
   return opponents.filter((o) => {
-    const d = Math.hypot(o.x - player.x, o.y - player.y);
-    return d > 0 && d < 5;
+    const dx = o.x - player.x, dy = o.y - player.y;
+    const d = Math.hypot(dx, dy);
+    return d > 0 && d < 5 && dx * Math.cos(f) + dy * Math.sin(f) >= 0;
   }).length;
 }
 

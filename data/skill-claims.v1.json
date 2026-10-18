@@ -1,13 +1,13 @@
 {
  "schema": "efml.skillClaims",
- "version": "1.1.0",
- "status": "community",
+ "version": "2.0.0",
+ "status": "datamine",
  "source": {
   "title": "eFootball Reverse Engineering Community Archive — Attribute engine, spatial geometry & skill mechanics (4 slides)",
   "researcher": "wyzzzzzzz",
   "target": "libUE4.so (ARM64) · NetEase v11.0.0 · SHA256 2ea6b0b56bb59042…",
   "received": "2026-10-18 (screenshots shared by the user)",
-  "note": "Community disassembly claims, not independently verified. Shown in the Skills Lab as text only; nothing here changes stats in the app."
+  "note": "Datamine of libUE4.so (ARM64, NetEase v11.0.0). Treated as fact, at the same level as the eFHUB article (user decision, 18 Oct 2026). Where both agree the engine uses the value; conflicts are listed."
  },
  "pipeline": {
   "stages": [
@@ -21,14 +21,14 @@
    {
     "topic": "Action ceiling",
     "claim": "Effective ceiling 127 for action-local values.",
-    "check": "differs",
-    "vsEngine": "Engine: boosters up to 120; local (action) bonus not capped. The 127 ceiling is not used."
+    "check": "agrees",
+    "vsEngine": "Used by the engine: action-local values are capped at 127 (boosters still stop at 120)."
    },
    {
     "topic": "Manager table",
     "claim": "DT 88: stats 40–55 +1, 56–83 +2, 84–99 +3.",
     "check": "partly",
-    "vsEngine": "These bands match the eFHUB-measured table at proficiency 89. At 88 eFHUB gives 40–56 +1, 57–84 +2, 85–99 +3."
+    "vsEngine": "These bands are the eFHUB-measured table at proficiency 89 (at 88 eFHUB gives 40–56 +1, 57–84 +2, 85–99 +3). The engine keeps the per-proficiency eFHUB table."
    },
    {
     "topic": "Manager vs skills",
@@ -136,8 +136,8 @@
    "hypothesis": "",
    "finding": "Scans opponents within 5 m (0 < dist < 5 m), excluding a 180° blind spot directly behind. 1 opponent +2, 2 → +4, 3 → +6, 4+ → +8 (max) to Dribbling, Tight Possession, Physical Contact and Balance. Clamped at 99: base must be ≤ 91 for the full +8.",
    "type": "stat",
-   "check": "partly",
-   "vsCommunity": "Article: 0 < d < 5 m, +2 per opponent up to 4, capped at 99 (same). The 180° rear blind spot is not in the article."
+   "check": "agrees",
+   "vsCommunity": "Used by the engine, including the rear blind spot."
   },
   {
    "id": "long_reach_tackle",
@@ -156,8 +156,8 @@
    "hypothesis": "",
    "finding": "GK defensive zone behind the −18 m line (covers the whole defensive third for CBs): +2 Awareness & Tackling.",
    "type": "stat",
-   "check": "conflict",
-   "vsCommunity": "Article: +2 Defensive Awareness and Aggression (not Tackling) to CB/LB/RB at −18 m or deeper. The engine keeps the article."
+   "check": "agrees",
+   "vsCommunity": "Used by the engine (datamine wins): Defensive Awareness and Tackling. The article said Aggression."
   }
  ],
  "otherSkills": [
@@ -167,8 +167,8 @@
    "hypothesis": "Flat +5 to pass stats or auto-locks the trajectory into space.",
    "finding": "Hybrid model: +5 applies to random deviation, trajectory and lofted apex. The turn animation uses the base stat.",
    "type": "local",
-   "check": "conflict",
-   "vsCommunity": "r/Amadeusz measured +20% instead."
+   "check": "agrees",
+   "vsCommunity": "Used by the engine as the article's ordinary passing +5 (local, through passes). The r/Amadeusz +20% is not used."
   }
  ],
  "spatial": {
@@ -195,8 +195,8 @@
    {
     "topic": "Magnetic Feet radar",
     "claim": "0 < dist < 5 m, 180° blind spot directly behind.",
-    "check": "partly",
-    "vsEngine": "Radius matches; the blind spot is new (not modelled)."
+    "check": "agrees",
+    "vsEngine": "Used by the engine: opponents in the rear half (relative to facing) are not counted."
    }
   ]
  }

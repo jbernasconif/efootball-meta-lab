@@ -1,7 +1,7 @@
 // Layered stat engine following the article's documented order of operations:
 //  A card base → B + user progression → C condition arrow, then manager delta from the reference value
 //  → D temporary skill additions → E ordinary cap 40–99, then post-cap additions, extended cap 120
-//  → F action-local bonus (uncapped, current action only) → G motion parameters (never attribute points).
+//  → F action-local bonus (ceiling 127, current action only) → G motion parameters (never attribute points).
 import { ATTRS, GK_ATTRS } from './attributes.js';
 import { progressionDeltas } from './progression.js';
 import { resolveSkills, matchCardSkills } from './skills.js';
@@ -35,13 +35,14 @@ export function managerDelta(mech, level, reference) {
 }
 
 // Pure single-attribute pipeline (also used directly by tests).
-export function pipelineValue({ base, condDelta = 0, mgrDelta = 0, temp = 0, postCap = 0, local = 0 }, caps = { ordinaryMin: 40, ordinaryMax: 99, extendedMax: 120 }) {
+export function pipelineValue({ base, condDelta = 0, mgrDelta = 0, temp = 0, postCap = 0, local = 0 }, caps = { ordinaryMin: 40, ordinaryMax: 99, extendedMax: 120, localMax: 127 }) {
   const afterCondition = clamp(base + condDelta, caps.ordinaryMin, caps.ordinaryMax);
   const afterManager = afterCondition + mgrDelta;
   const preCap = afterManager + temp;
   const ordinary = clamp(preCap, caps.ordinaryMin, caps.ordinaryMax);
   const extended = Math.min(ordinary + postCap, caps.extendedMax);
-  return { afterCondition, afterManager, preCap, ordinary, extended, local: extended + local, capLoss: Math.max(0, preCap - caps.ordinaryMax) };
+  // Action-local value: effective ceiling 127 (datamine).
+  return { afterCondition, afterManager, preCap, ordinary, extended, local: Math.min(extended + local, caps.localMax ?? 127), capLoss: Math.max(0, preCap - caps.ordinaryMax) };
 }
 
 /**
