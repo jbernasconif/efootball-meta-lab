@@ -231,6 +231,7 @@ const SRC = [
   ['mgr', 'Manager', 'Manager proficiency adjustment'],
   ['skill', 'Skills', 'In-match skill bonus while active'],
   ['boost', 'Booster', 'Booster (added after the 99 cap)'],
+  ['act', 'Action skill', 'Action skill bonus (e.g. Through Passing, Phenomenal Finishing): added after the 99 cap, ceiling 127'],
   ['lost', 'Lost to cap', 'Points that go above 99 and are discarded'],
 ];
 const CONDS = [['A', '↑', 'Excellent'], ['B', '↗', 'Good'], ['C', '→', 'Normal'], ['D', '↘', 'Bad'], ['E', '↓', 'Very bad']];
@@ -245,8 +246,8 @@ function bar(r, bps = []) {
     ${seg('base', 0, s1, `Base ${r.A}`)}${seg('prog', s1, s2, `Training +${r.prog}`)}
     ${s3 >= s2 ? seg('cond', s2, s3, `Condition +${s3 - s2}`) : seg('neg', s3, s2, `Condition ${r.cond}`)}
     ${seg('mgr', Math.min(s3, 99), s4, `Manager +${r.mgr}`)}${seg('skill', s4, s5, `Skills +${s5 - s4}`)}
-    ${seg('boost', s5, s6, `Booster +${s6 - s5}`)}
-    ${lost ? seg('lost', s6, s6 + lost, `${lost} lost to the 99 cap`) : ''}
+    ${seg('boost', s5, s6, `Booster +${s6 - s5}`)}${seg('act', s6, r.local, `${r.actionSource} +${r.actionBonus} → ${r.local}`)}
+    ${lost ? seg('lost', Math.max(s6, r.local), Math.max(s6, r.local) + lost, `${lost} lost to the 99 cap`) : ''}
     ${bps.map((b) => `<b class="bp ${r.extended >= b.at ? 'hit' : ''}" style="left:${pctOf(b.at)}" title="${esc(`${b.at} · ${b.label}: ${b.effect} (community, ${b.confidence})`)}"></b>`).join('')}
     <b class="cap" style="left:${pctOf(99)}" title="99 cap"></b></div>`;
 }
@@ -320,7 +321,7 @@ function breakdownCard(app, card, b, alloc) {
     <div class="legend2">${SRC.map(([k, l, t]) => `<span title="${esc(t)}"><i class="dot2 s-${k}"></i>${l}</span>`).join('')}<span><i class="capmark"></i>99 cap</span></div>
 
     <div class="xscroll"><table class="bk">
-      <thead><tr><th>Stat</th><th class="n">Base</th><th class="n t-prog">Train</th><th class="n t-boost">Boost</th><th class="n t-mgr">Mgr</th><th class="n ingame" title="What the game shows: base + training + booster + manager">In-game</th><th class="n t-cond">Cond</th><th class="n t-skill" title="+N: in-match stat bonus while active (through the 99 cap, counts in Final). ⚡+N: bonus for one action only (after the cap, ceiling 127, not in Final)">Skill</th><th class="n">Final</th><th style="width:34%"></th></tr></thead>
+      <thead><tr><th>Stat</th><th class="n">Base</th><th class="n t-prog">Train</th><th class="n t-boost">Boost</th><th class="n t-mgr">Mgr</th><th class="n ingame" title="What the game shows: base + training + booster + manager">In-game</th><th class="n t-cond">Cond</th><th class="n t-skill" title="+N: in-match stat bonus while active (through the 99 cap, counts in Final). ⚡+N: action skill bonus (after the 99 cap, ceiling 127, counted in Final)">Skill</th><th class="n">Final</th><th style="width:34%"></th></tr></thead>
       <tbody>${Object.entries(GROUPS).map(([g, attrs]) => `<tr class="grp"><td colspan="10">${g}</td></tr>${attrs.map((a) => {
         const r = rows[a];
         const lost = r.capLoss + Math.max(0, r.B - 99);
@@ -332,8 +333,8 @@ function breakdownCard(app, card, b, alloc) {
           ${cell(r.mgr, 'mgr', `Proficiency +${r.mgrProf}${r.mgrBoost ? ` · manager boost +${r.mgrBoost}` : ''}`)}
           <td class="n ingame"><b class="${statColor(r.ingame)}">${r.ingame}</b></td>
           ${cell(r.cond, r.cond < 0 ? 'neg' : 'cond', 'Condition arrow')}
-          ${r.skill || r.actionBonus ? `<td class="n t-skill" title="${esc([...(r.skill ? [r.sources.join(', ')] : []), ...(r.actionBonus ? [`${r.actionSource} +${r.actionBonus} on that action only → ${r.local} (after the 99 cap, ceiling 127; not in Final)`] : [])].join(' · '))}">${r.skill ? `+${r.skill}` : ''}${r.actionBonus ? `<span class="zapv">⚡+${r.actionBonus}</span>` : ''}</td>` : '<td class="n dim">·</td>'}
-          <td class="n"><b class="final ${statColor(r.extended)} ${r.ordinary >= 99 ? 'is-max' : ''}">${r.extended}</b></td>
+          ${r.skill || r.actionBonus ? `<td class="n t-skill" title="${esc([...(r.skill ? [r.sources.join(', ')] : []), ...(r.actionBonus ? [`${r.actionSource} +${r.actionBonus} on its action → ${r.local} (after the 99 cap, ceiling 127; counted in Final)`] : [])].join(' · '))}">${r.skill ? `+${r.skill}` : ''}${r.actionBonus ? `<span class="zapv">⚡+${r.actionBonus}</span>` : ''}</td>` : '<td class="n dim">·</td>'}
+          <td class="n"><b class="final ${statColor(r.actionBonus ? r.local : r.extended)} ${r.ordinary >= 99 ? 'is-max' : ''}" title="${esc(r.actionBonus ? `${r.extended} + ${r.actionSource} ⚡+${r.actionBonus} = ${r.local} (ceiling 127)` : '')}">${r.actionBonus ? r.local : r.extended}</b></td>
           <td>${bar(r, bpsByStat[a])}</td></tr>`;
       }).join('')}`).join('')}</tbody>
     </table></div>
