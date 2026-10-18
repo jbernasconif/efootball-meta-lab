@@ -168,7 +168,7 @@ export function render(root, app, opts = {}) {
     <label class="f" style="min-width:160px">Role<select data-action="role">${sug.roles.map((r) => `<option ${r === ui.role ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></label>
   </div>
   ${(() => { const s = Object.values(sug.out).find((x) => JSON.stringify(x.allocation) === JSON.stringify(alloc)); return s ? `<p class="sugdesc"><b>${esc(s.name)}:</b> ${esc(s.desc)}</p>` : ''; })()}
-` : ''}
+` : `<div class="notice" style="margin-top:0">No progression points for this card on eFHUB (0 / 0), so there is no build to suggest.</div>`}
 
   <div class="grid g-plan">
     <div class="card">
@@ -400,7 +400,8 @@ function skillRow(D, card, sum, id) {
 function dimText(r, curves) {
   const parts = [];
   for (const s of r.stats) {
-    const seg = (curves[s.attr] ?? []).filter((b) => s.now + 1 > b.at).pop();
+    // Only reduced-value segments (factor < 1); reach thresholds like Passing 90 have no factor.
+    const seg = (curves[s.attr] ?? []).filter((b) => b.valueFactor != null && b.valueFactor < 1 && s.now + 1 > b.at).pop();
     if (seg && s.now < 99) parts.push(`${s.label} next point ≈${seg.valueFactor.toFixed(2)} (above ${seg.at})`);
   }
   return parts.join(', ');
