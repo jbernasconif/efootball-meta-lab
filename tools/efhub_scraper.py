@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import csv
 import datetime as dt
+import json
 import logging
 import re
 import sys
@@ -122,7 +123,25 @@ JS_STYLES = """() => {
 
 
 class RegionalCard(Exception):
-    """The card redirects to a non-English locale page; skipped (not retried)."""
+    """The card redirects to a non-English locale page and no dictionary is available; skipped (not retried)."""
+
+
+# pt-BR -> English page texts, built by tools/efhub_ptbr.py from the same cards in both languages.
+PTBR_FILE = Path(__file__).with_name("efhub_ptbr.json")
+PTBR = json.loads(PTBR_FILE.read_text(encoding="utf-8"))["table"] if PTBR_FILE.exists() else {}
+
+# Replaces every text node whose trimmed text is in the dictionary (labels, skills, styles, boosters...).
+JS_TRANSLATE = """(table) => {
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  let n, k = 0;
+  while ((n = w.nextNode())) { const t = n.textContent.trim(); if (t && table[t] !== undefined) { n.textContent = table[t]; k++; } }
+  return k;
+}"""
+
+
+def translate(page: Page) -> None:
+    if PTBR and "/pt-BR/" in page.url:
+        page.evaluate(JS_TRANSLATE, PTBR)
 
 
 @dataclass
@@ -200,10 +219,15 @@ def click_button(page: Page, name: str) -> bool:
 def scrape(page: Page, url: str, timeout_ms: int) -> dict:
     page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
     # Some regional cards only exist in a localized version (e.g. /pt-BR/players/...): English labels never appear.
-    if re.search(r"efhub\.com/[a-z]{2}(-[A-Za-z]{2})?/players/", page.url):
+    regional = re.search(r"efhub\.com/[a-z]{2}(-[A-Za-z]{2})?/players/", page.url)
+    if regional and not ("/pt-BR/" in page.url and PTBR):
         raise RegionalCard(page.url)
     labels = list(STAT_LABELS)
     # Stats are rendered client-side after a skeleton: wait until all 26 rows have numbers.
+    if regional:  # wait on the Portuguese labels, then translate the page in place
+        inv = {v: k for k, v in PTBR.items() if v in STAT_LABELS}
+        page.wait_for_function(JS_STATS_READY, arg=[inv.get(l, l) for l in labels], timeout=timeout_ms)
+        translate(page)
     page.wait_for_function(JS_STATS_READY, arg=labels, timeout=timeout_ms)
 
     desc = page.locator('meta[name="description"]').get_attribute("content") or ""
@@ -218,6 +242,7 @@ def scrape(page: Page, url: str, timeout_ms: int) -> dict:
 
     # Max level, 0 points spent: press Max (sets max level + eFHUB auto-allocation), read, then Reset.
     pressed_max = click_button(page, "Max")
+    translate(page)
     text_max = page.inner_text("body")
     max_stats = page.evaluate(JS_READ_STATS, labels)
     max_overall = page.evaluate(JS_CARD_OVERALL)
@@ -225,12 +250,15 @@ def scrape(page: Page, url: str, timeout_ms: int) -> dict:
     max_build = category_levels(text_max)
     if pressed_max:
         click_button(page, "Reset")
+    translate(page)
     text = page.inner_text("body")
     base_stats = page.evaluate(JS_READ_STATS, labels)
     boosters = page.evaluate(JS_BOOSTERS)
     # The card art shows OVR with boosters; the title/description rating is without them.
     boosted_overall = page.evaluate(JS_CARD_OVERALL)
-    base_overall = int(m.group(2)) if m else boosted_overall
+    # Localized pages have a translated description; the <title> ("Name — 85 OVR | eFHUB") still has the rating.
+    t_ovr = re.search(r"(\d{2,3}) OVR", page.title())
+    base_overall = int(m.group(2)) if m else int(t_ovr.group(1)) if t_ovr else boosted_overall
     if pts and points(text) and points(text)[0] != 0:
         log.warning("%s: points still allocated after Reset (%s); base stats may include training", url, points(text))
 

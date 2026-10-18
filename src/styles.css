@@ -258,3 +258,8 @@ table.bk tr.has-lost td:first-child { box-shadow: inset 3px 0 0 var(--src-lost);
   main { padding: 16px; }
   .g2, .g3, .g-side, .g-narrow { grid-template-columns: 1fr; }
 }
+/* In-game column: value shown on the squad screen (base + train + boost + manager) */
+.breakdown th.ingame, .breakdown td.ingame, th.ingame, td.ingame { background: color-mix(in srgb, var(--accent, #4da3ff) 12%, transparent); border-left: 1px solid var(--line, #333); border-right: 1px solid var(--line, #333); }
+td.ingame b { font-size: 14px; }
+.sugdesc { margin: -4px 0 12px; font-size: 12.5px; color: var(--muted, #9aa4b2); }
+.sugdesc b { color: var(--text, #e6e9ef); }

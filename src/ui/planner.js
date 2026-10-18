@@ -44,10 +44,10 @@ function suggestions(app, card, ctx, allBoosters) {
   const common = { card, prog: D.progression, mech: D.mechanics };
   const neutral = [{ prob: 1, temp: {}, ids: [] }];
   const defs = {
-    auto: ['Balanced', 'Role-weighted stats for this position.', weightsFor(D.roles, card.position, 'auto'), neutral],
-    meta: ['Meta', 'Pace and physicality first (competitive meta weights).', weightsFor(D.roles, card.position, 'meta'), neutral],
-    role: [ui.role, 'Specialised for this tactical role.', weightsFor(D.roles, card.position, 'tactical', ui.role), neutral],
-    skills: ['Skill-aware', 'Avoids stats that your skills already push past 99.', weightsFor(D.roles, card.position, 'auto'), skillStates(card, D.skills, D.roles, app.state.opt.freqs)],
+    auto: ['Balanced', 'Spreads points over the stats that matter most for this position. No skills, boosters or coach considered.', weightsFor(D.roles, card.position, 'auto'), neutral],
+    meta: ['Meta', 'Leans toward pace, physical contact and stamina — the competitive meta priorities for this position. No skills, boosters or coach considered.', weightsFor(D.roles, card.position, 'meta'), neutral],
+    role: [ui.role, `Weights tuned for the ${ui.role} role (pick another role on the right).`, weightsFor(D.roles, card.position, 'tactical', ui.role), neutral],
+    skills: ['Skill-aware', 'Like Balanced, but skips stats that the card’s own skills already push past 99.', weightsFor(D.roles, card.position, 'auto'), skillStates(card, D.skills, D.roles, app.state.opt.freqs)],
   };
   // Complete / No-cap-breach: own skills + boosters (card + slot 2) + coach (DT) + condition; no teammate effects.
   const b = app.build(card);
@@ -62,10 +62,10 @@ function suggestions(app, card, ctx, allBoosters) {
   const fullStates = skillStates(card, D.skills, D.roles, app.state.opt.freqs);
   const fullScore = makeObjective({ ...common, ...full, weights: fullW, states: fullStates, curves: curvesFrom(D.breakpoints) });
   const complete = optimize({ prog: D.progression, budget: card.progressionPoints, score: fullScore, lookahead: D.roles.optimizer.lookahead });
-  out.complete = { name: 'Complete', desc: 'Own skills + boosters + coach (DT) + condition + community breakpoints. Ignores teammate effects.', allocation: complete.allocation, spent: complete.spent, score: fullScore, featured: true };
+  out.complete = { name: 'Complete', desc: 'Uses everything on this card: own skills, boosters, coach proficiency and boosts, condition and speed/acceleration breakpoints. Teammate effects (e.g. Visionary Pass) are left out.', allocation: complete.allocation, spent: complete.spent, score: fullScore, featured: true };
   const safeScore = withNoBreach(fullScore, card, D.progression, D.mechanics, D.skills, full);
   const safe = optimize({ prog: D.progression, budget: card.progressionPoints, score: safeScore, lookahead: D.roles.optimizer.lookahead });
-  out.nocap = { name: 'No cap breach', desc: 'Like Complete, but no stat may pass 99 — even with all its own skills active.', allocation: safe.allocation, spent: safe.spent, score: safeScore, featured: true };
+  out.nocap = { name: 'No cap breach', desc: 'Same as Complete, but no stat may go over 99 even with all its own skills active, so no point is wasted.', allocation: safe.allocation, spent: safe.spent, score: safeScore, featured: true };
   // Points each build loses to the cap in the current context (own skills on, boosters, coach, condition).
   for (const s of Object.values(out)) {
     const rows = statBreakdown(card, D.progression, s.allocation, D.mechanics, D.skills, { ...ctx, active: ctx.active.filter((id) => !toggleableSkills(card, D.skills).find((t) => t.id === id)?.fromTeammate), rating: b.rating, boosters: allBoosters });
@@ -145,9 +145,10 @@ export function render(root, app, opts = {}) {
   </div>
 
   ${sug ? `<div class="sugg">
-    ${Object.entries(sug.out).map(([k, s]) => `<button class="sug ${s.featured ? 'featured' : ''} ${JSON.stringify(s.allocation) === JSON.stringify(alloc) ? 'applied' : ''}" data-apply="${k}"><b>${esc(s.name)}</b><em>${s.spent} pts · <span class="${s.lost ? 't-lost' : 'up'}">${s.lost} lost to cap</span> · apply</em></button>`).join('')}
+    ${Object.entries(sug.out).map(([k, s]) => `<button class="sug ${s.featured ? 'featured' : ''} ${JSON.stringify(s.allocation) === JSON.stringify(alloc) ? 'applied' : ''}" data-apply="${k}" title="${esc(s.desc)}"><b>${esc(s.name)}</b><em>${s.spent} pts · <span class="${s.lost ? 't-lost' : 'up'}">${s.lost} lost to cap</span> · apply</em></button>`).join('')}
     <label class="f" style="min-width:160px">Role<select data-action="role">${sug.roles.map((r) => `<option ${r === ui.role ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></label>
   </div>
+  ${(() => { const s = Object.values(sug.out).find((x) => JSON.stringify(x.allocation) === JSON.stringify(alloc)); return s ? `<p class="sugdesc"><b>${esc(s.name)}:</b> ${esc(s.desc)}</p>` : ''; })()}
 ` : ''}
 
   <div class="grid g-plan">
@@ -340,17 +341,20 @@ function breakdownCard(app, card, b, alloc) {
     <div class="legend2">${SRC.map(([k, l, t]) => `<span title="${esc(t)}"><i class="dot2 s-${k}"></i>${l}</span>`).join('')}<span><i class="capmark"></i>99 cap</span></div>
 
     <div class="xscroll"><table class="bk">
-      <thead><tr><th>Stat</th><th class="n">Base</th><th class="n t-prog">Train</th><th class="n t-cond">Cond</th><th class="n t-mgr">Mgr</th><th class="n t-skill" title="In-match stat bonus while the skill is active (goes through the 99 cap)">Skill</th><th class="n t-act" title="Bonus for one action only: ⚡ article skills (not capped), ◇ community-measured skills (capped at 99)">Action</th><th class="n t-boost">Boost</th><th class="n">Final</th><th style="width:38%"></th></tr></thead>
-      <tbody>${Object.entries(GROUPS).map(([g, attrs]) => `<tr class="grp"><td colspan="10">${g}</td></tr>${attrs.map((a) => {
+      <thead><tr><th>Stat</th><th class="n">Base</th><th class="n t-prog">Train</th><th class="n t-boost">Boost</th><th class="n t-mgr">Mgr</th><th class="n ingame" title="What the game shows: base + training + booster + manager">In-game</th><th class="n t-cond">Cond</th><th class="n t-skill" title="In-match stat bonus while the skill is active (goes through the 99 cap)">Skill</th><th class="n t-act" title="Bonus for one action only: ⚡ article skills (not capped), ◇ community-measured skills (capped at 99)">Action</th><th class="n">Final</th><th style="width:34%"></th></tr></thead>
+      <tbody>${Object.entries(GROUPS).map(([g, attrs]) => `<tr class="grp"><td colspan="11">${g}</td></tr>${attrs.map((a) => {
         const r = rows[a];
         const lost = r.capLoss + Math.max(0, r.B - 99);
         return `<tr class="${lost ? 'has-lost' : ''}">
           <td>${LABELS[a]}${lost ? ` <span class="lostchip" title="${lost} points above 99 are discarded">−${lost}</span>` : ''}${bpChip(r, bpsByStat[a])}</td>
           <td class="n">${r.A}</td>
-          ${cell(r.prog, 'prog', 'Training')}${cell(r.cond, r.cond < 0 ? 'neg' : 'cond', 'Condition arrow')}${cell(r.mgr, 'mgr', `Proficiency +${r.mgrProf}${r.mgrBoost ? ` · manager boost +${r.mgrBoost}` : ''}`)}
+          ${cell(r.prog, 'prog', 'Training')}
+          ${cell(r.boost, 'boost', `Booster: ${boosterNames.join(', ')} (applied after the 99 cap)`)}
+          ${cell(r.mgr, 'mgr', `Proficiency +${r.mgrProf}${r.mgrBoost ? ` · manager boost +${r.mgrBoost}` : ''}`)}
+          <td class="n ingame"><b class="${statColor(r.ingame)}">${r.ingame}</b></td>
+          ${cell(r.cond, r.cond < 0 ? 'neg' : 'cond', 'Condition arrow')}
           ${r.skill ? `<td class="n t-skill" title="${esc(r.sources.join(', '))}">+${r.skill}</td>` : '<td class="n dim">·</td>'}
           ${r.actionBonus || r.community.length ? `<td class="n act" title="${esc([...(r.actionBonus ? [`${r.actionSource} +${r.actionBonus} on special motions (not capped)`] : []), ...r.community.map((c) => `${c.skill} ${c.label} on ${c.action} (community, capped at 99)`)].join(' · '))}">${r.actionBonus ? `<span class="zapv">⚡+${r.actionBonus}</span>` : ''}${r.community.map((c) => `<span class="commv">&#9671;${esc(c.label)}</span>`).join('')}</td>` : '<td class="n dim">·</td>'}
-          ${cell(r.boost, 'boost', `Booster: ${boosterNames.join(', ')} (applied after the 99 cap)`)}
           <td class="n"><b class="final ${statColor(r.extended)} ${r.ordinary >= 99 ? 'is-max' : ''}">${r.extended}</b>${r.actionBonus ? `<span class="actv" title="Value on that action with ${esc(r.actionSource)}">→${r.local}</span>` : ''}${r.community[0] && r.community[0].value > r.extended ? `<span class="actv commv" title="${esc(`${r.community[0].action} with ${r.community[0].skill}`)}">→${r.community[0].value}</span>` : ''}</td>
           <td>${bar(r, bpsByStat[a])}</td></tr>`;
       }).join('')}`).join('')}</tbody>

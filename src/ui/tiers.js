@@ -9,12 +9,28 @@ const ui = { tab: 'players', pos: 'all' };
 
 const norm = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z]/g, '');
 
-// Best matching card in the dataset: same name (accents ignored) and card type when given; highest OVR wins.
+// eFHUB spells names differently from game8: "K. Heinz Rummenigge", "Mitoma Kaoru", "Neymar Jr", "Ronaldinho Gaucho".
+const words = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/-/g, ' ').replace(/[^a-z. ]/g, '').split(/\s+/).filter(Boolean);
+function nameScore(tierName, cardName) {
+  const a = words(tierName).map((w) => w.replace(/\./g, ''));
+  const b = words(cardName);
+  const full = b.filter((w) => !w.endsWith('.')).map((w) => w.replace(/\./g, ''));
+  const initials = b.filter((w) => w.endsWith('.')).map((w) => w[0]);
+  if (a.length === full.length + initials.length && !initials.length && full.every((w) => a.includes(w)) && a.every((w) => full.includes(w))) return 3;
+  if (full.length && full.every((w) => a.includes(w)) && initials.every((i) => a.some((w) => w.startsWith(i)))) return 2;
+  if (a.length && a.every((w) => full.includes(w))) return 1;
+  return 0;
+}
+
+// Best matching card: best name match, same card type when eFHUB has it (else any version), highest OVR wins.
 function findCard(app, name, cardCode) {
-  const n = norm(name);
   const type = CARD[cardCode]?.[0];
-  const hits = app.state.cards.filter((c) => norm(c.name) === n && (!type || c.cardType === type));
-  return hits.sort((a, b) => (b.overall ?? 0) - (a.overall ?? 0))[0];
+  const scored = app.state.cards.map((c) => [nameScore(name, c.name), c]).filter(([s]) => s);
+  const top = Math.max(0, ...scored.map(([s]) => s));
+  const hits = scored.filter(([s]) => s === top).map(([, c]) => c);
+  const byOvr = (a, b) => (b.overall ?? 0) - (a.overall ?? 0);
+  const typed = hits.filter((c) => !type || c.cardType === type).sort(byOvr)[0];
+  return typed ? { card: typed, exact: true } : hits.length ? { card: hits.sort(byOvr)[0], exact: false } : null;
 }
 
 const tierClass = (t) => (/SSS|Tier ?1|^T0|Mythic|^1$/.test(t) ? 't1' : /SS|Tier ?2|^T1|^S$/.test(t) ? 't2' : /Tier ?3|^T2|^A$/.test(t) ? 't3' : 't4');
@@ -59,11 +75,13 @@ function players(app, T, g) {
     const list = rows.filter((r) => r.position === p).sort((a, b) => a.rank - b.rank);
     return `<div class="card"><div class="row"><h2 style="margin:0">${POS[p] ?? p}</h2><span class="spacer"></span>${src(list[0]?.source_url, list[0]?.page_date)}</div>
       ${list.map((r) => {
-        const c = findCard(app, r.nameEn, r.card);
+        const m = findCard(app, r.nameEn, r.card);
+        const c = m?.card;
         return `<div class="trow"><span class="rank">${r.rank}</span>
           <span class="ctype ${CARD[r.card]?.[0] ?? ''}">${esc(r.card ?? '')}</span>
           <b>${esc(r.nameEn)}</b>${/verify/i.test(JSON.stringify(r)) ? '<span class="badge b-warn">verify</span>' : ''}
           <span class="spacer"></span>
+          ${c && !m.exact ? `<span class="muted" style="font-size:11px" title="eFHUB has no ${esc(CARD[r.card]?.[1] ?? '')} card of this player yet; opens the best other version">${esc(c.cardType)}</span>` : ''}
           ${c ? `<button class="small" data-open="${esc(c.id)}" title="Open ${esc(c.name)} ${esc(c.playingStyle)} in the Build Planner"><b class="${statColor(c.overall ?? 0)}">${c.overall}</b> Open</button>` : '<span class="muted" style="font-size:11px">not in dataset</span>'}
         </div>`;
       }).join('')}</div>`;

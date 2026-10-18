@@ -180,7 +180,9 @@ export function statBreakdown(card, prog, allocation, mech, skillsDB, opts = {})
     }).sort((x, y) => y.value - x.value);
     // v.local = value used for that one action (not capped); actionBonus/actionSource describe it.
     return [a, { A, prog: d[a] ?? 0, B, cond, mgr, mgrProf, mgrBoost, skill: temp[a] ?? 0, sources: sources[a] ?? [], boost: boosters[a] ?? 0,
-      actionBonus: lb, actionSource: local[a]?.source ?? '', community: comm, ...v }];
+      actionBonus: lb, actionSource: local[a]?.source ?? '', community: comm,
+      // What the game shows on the squad screen: base + training + manager, 99 cap, then boosters (no condition/skills).
+      ingame: pipelineValue({ base: B, mgrDelta: mgr, postCap: boosters[a] ?? 0 }, mech.caps).extended, ...v }];
   }));
 }
 
