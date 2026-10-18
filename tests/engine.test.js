@@ -6,10 +6,10 @@ import { resolveSkills } from '../src/engine/skills.js';
 import { deriveFacts, defaultScenario, countNearbyOpponents } from '../src/engine/scenario.js';
 import { bulletHeaderRetention, blitzCurlerAngle, blitzCurlerPower, postureRetention, fightingSpiritThreshold, lowScreamerPower } from '../src/engine/motion.js';
 import { categoryCost, totalCost } from '../src/engine/progression.js';
-import { optimize, makeObjective, weightsFor, skillStates, curveValue, curvesFrom } from '../src/engine/optimizer.js';
+import { optimize, makeObjective, weightsFor, skillStates, curveValue, curvesFrom, targetsFor } from '../src/engine/optimizer.js';
 import { importText } from '../src/data/importer.js';
 import { ATTRS } from '../src/engine/attributes.js';
-import { summarize, analyzeCategories, statBreakdown, combineBoosters, withNoBreach, capBreaches, communityEffectsFor } from '../src/engine/planner.js';
+import { summarize, analyzeCategories, statBreakdown, combineBoosters, withNoBreach, capBreaches } from '../src/engine/planner.js';
 
 export function register(D) {
   const { skills: db, mechanics: mech, progression: prog, roles } = D;
@@ -394,10 +394,9 @@ export function register(D) {
     ok(capBreaches(card, prog, { defending: 2 }, mech, db, { condition: 'A', managerLevel: '89' }).length > 0);
   });
 
-  test('Community curve: Speed above 90 worth 2/3, above 96 worth 1/3 (Amadeusz)', () => {
+  test('Speed curve: 96–99 adds nothing, past 99 counts again (user meta guidance)', () => {
     const c = curvesFrom(D.breakpoints).speed;
-    close(curveValue(85, c), 85); close(curveValue(90, c), 90);
-    close(curveValue(93, c), 90 + 3 * 0.667, 1e-9); close(curveValue(99, c), 90 + 6 * 0.667 + 3 * 0.333, 1e-9);
+    close(curveValue(90, c), 90); close(curveValue(96, c), 96); close(curveValue(99, c), 96); close(curveValue(101, c), 98);
   });
 
   // ---- Progression verified on eFHUB (card 110718, 18 Oct 2026) ----
@@ -440,14 +439,23 @@ export function register(D) {
     const s = summarize(card, prog, { passing: 4 }, db); // 97→99 after 2 levels; levels 3–4 wasted (1+1)
     eq(s.wastedPoints, 2); eq(s.wastedStats, 4);
   });
-  test('Community action effects: shown as % upgrade, never added to Final', () => {
-    const card = flatCard(85, { skills: ['Through Passing'], position: 'CMF' });
-    const fx = communityEffectsFor(card, D.breakpoints, D.skillClaims);
-    eq(fx.length, 2); // r/Amadeusz +20% (cap 99) and disassembly slides +5 (local)
-    const r = statBreakdown(card, prog, {}, mech, db, { community: fx }).lowPass;
-    eq(r.extended, 85);
-    const am = r.community.find((c) => c.by === 'r/Amadeusz'), sl = r.community.find((c) => c.by === 'disassembly slides');
-    eq(am.value, 99); eq(am.gain, 14); close(am.pct, 16.5, 0.05);
-    eq(sl.value, 90); close(sl.pct, 5.9, 0.05);
+  test('Passing/Shooting 90 threshold: reaching 90 adds the reach bonus in the optimizer', () => {
+    const c = curvesFrom(D.breakpoints).lowPass;
+    close(curveValue(89, c), 89); close(curveValue(90, c), 93); close(curveValue(95, c), 98);
+  });
+  test('Goals: forward reaches Offensive Awareness 90 when it costs ≤12 dexterity points', () => {
+    const card = flatCard(82, { position: 'CF', progressionPoints: 30 });
+    const score = makeObjective({ card, prog, mech, weights: weightsFor(roles, 'CF', 'auto'), states: [{ prob: 1, temp: {}, ids: [] }], targets: targetsFor(roles, 'CF') });
+    const r = optimize({ prog, budget: 30, score, lookahead: 8 });
+    ok(82 + (r.allocation.dexterity ?? 0) >= 90, `dexterity ${r.allocation.dexterity}`);
+    const g = score({ dexterity: 8 }, true).goals.map((x) => x.stat);
+    ok(g.includes('offensiveAwareness'), 'OA 90 goal met at 8 levels (12 points)');
+    ok(!score({ dexterity: 9 }, true).goals.some((x) => x.stat === 'offensiveAwareness'), 'over 12 points the goal no longer counts');
+  });
+  test('Goals: defenders get acceleration 80 / speed 85 within 8 points', () => {
+    const card = flatCard(76, { position: 'CB', progressionPoints: 20 });
+    const score = makeObjective({ card, prog, mech, weights: weightsFor(roles, 'CB', 'auto'), states: [{ prob: 1, temp: {}, ids: [] }], targets: targetsFor(roles, 'CB') });
+    const g = score({ dexterity: 4, lowerBody: 6 }, true).goals.map((x) => `${x.stat}${x.at}`);
+    ok(g.includes('acceleration80') && g.includes('speed80'), g.join(','));
   });
 }

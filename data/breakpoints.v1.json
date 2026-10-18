@@ -1,56 +1,179 @@
 {
   "schema": "efml.breakpoints",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "status": "community",
   "source": "Zhuhai Amadeusz in-game tests (r/Amadeusz), via Skye's eFootball Encyclopedia (public Google Sheet that links each finding to its r/Amadeusz post). Reddit itself could not be opened, so post dates and sample sizes were not checked.",
   "sheet": "https://docs.google.com/spreadsheets/d/1A33zBtq6cVTghg6ytROST6k70SRMSFoOxEkSvdXSeRk/htmlview",
   "gameVersion": "eFootball 2026 (Thresholds tab last major update 7 May 2026)",
-  "note": "Community findings, not part of the eFHUB mechanics article. Where they conflict with the article (e.g. skill bonuses as % vs flat), the article rules stay in the engine and these are shown as info only.",
+  "note": "Community findings, not part of the eFHUB mechanics article. Skill % bonuses (e.g. Through Passing +20%) were removed on 18 Oct 2026: community sentiment, not measured mechanics.",
   "breakpoints": [
-    { "stat": "speed", "at": 90, "label": "Diminishing", "effect": "Above 90 each point is worth ~1.5× less", "valueFactor": 0.667, "confidence": "medium", "source": "https://www.reddit.com/r/Amadeusz/s/dI5YTu5hiD" },
-    { "stat": "speed", "at": 96, "label": "Steep diminishing", "effect": "96–99: each point worth ~1/3", "valueFactor": 0.333, "confidence": "medium", "source": "https://www.reddit.com/r/Amadeusz/s/dI5YTu5hiD" },
-    { "stat": "acceleration", "at": 88, "label": "Long stride", "effect": "Unlocks the longer-stride running animation", "confidence": "medium", "source": "https://www.reddit.com/r/Amadeusz/s/uIWMIX9ZNJ" },
-    { "stat": "acceleration", "at": 91, "label": "Max benefit", "effect": "Maximum benefit; above this returns are greatly diminished", "valueFactor": 0.333, "valueFactorStatus": "hypothesis (source gives no number)", "confidence": "medium", "source": "https://www.reddit.com/r/Amadeusz/s/PI5f0IuzPp" },
-    { "stat": "offensiveAwareness", "at": 90, "label": "AI-run cap", "effect": "Acceleration bonus on AI attacking runs maxes out at 90", "confidence": "medium", "source": "https://www.reddit.com/r/Amadeusz/s/nWfqAJWHMI" },
-    { "stat": "defensiveAwareness", "at": 70, "label": "Defending accel", "effect": "Below 70, Acceleration −0.5 per missing point in defensive situations", "confidence": "medium", "source": "https://www.reddit.com/r/Amadeusz/s/YiEbJFfGkj" },
-    { "stat": "defensiveAwareness", "at": 90, "label": "Accel link?", "effect": "Some acceleration change in defence (~1 for 1); direction unclear", "confidence": "low", "source": "https://www.reddit.com/r/Amadeusz/s/FjrfAPK6oX" },
-    { "stat": "heading", "at": 89, "label": "Backward header", "effect": "Unlocks the arching-backwards header animation", "confidence": "medium", "source": "https://www.reddit.com/r/Amadeusz/s/8YTvw8qFw9" },
-    { "stat": "lowPass", "at": 82, "label": "Through Passing → 99", "effect": "Reaches 99 with Through Passing (+20%); 87 recommended", "needsSkill": "Through Passing", "confidence": "high (arithmetic)", "source": "https://www.reddit.com/r/eFootball/s/c7qVdchg2s" },
-    { "stat": "loftedPass", "at": 82, "label": "Through Passing → 99", "effect": "Reaches 99 with Through Passing (+20%) on lofted through balls", "needsSkill": "Through Passing", "confidence": "high (arithmetic)", "source": "https://docs.google.com/spreadsheets/d/1A33zBtq6cVTghg6ytROST6k70SRMSFoOxEkSvdXSeRk/htmlview" },
-    { "stat": "loftedPass", "at": 90, "label": "Pinpoint → 99", "effect": "Reaches 99 with Pinpoint Crossing (+10%)", "needsSkill": "Pinpoint Crossing", "confidence": "high (arithmetic)", "source": "https://docs.google.com/spreadsheets/d/1A33zBtq6cVTghg6ytROST6k70SRMSFoOxEkSvdXSeRk/htmlview" },
-    { "stat": "finishing", "at": 90, "label": "Long-range → 99", "effect": "Reaches 99 with Long-range Shooting (+10%)", "needsSkill": "Long-range Shooting", "confidence": "high (arithmetic)", "source": "https://www.reddit.com/r/eFootball/s/2EM8hRKiuY" }
+    {
+      "stat": "speed",
+      "at": 96,
+      "label": "No gain 96–99",
+      "effect": "From 96 to 99 speed shows no visible improvement; aim for 90–96",
+      "valueFactor": 0,
+      "confidence": "medium",
+      "source": "User meta guidance, 18 Oct 2026 (replaces the 90/96 diminishing curve)"
+    },
+    {
+      "stat": "speed",
+      "at": 99,
+      "label": "Gains past 99",
+      "effect": "Above 99 (boosters) speed improves again",
+      "valueFactor": 1,
+      "confidence": "medium",
+      "source": "User meta guidance, 18 Oct 2026"
+    },
+    {
+      "stat": "acceleration",
+      "at": 88,
+      "label": "Long stride",
+      "effect": "Unlocks the longer-stride running animation",
+      "confidence": "medium",
+      "source": "https://www.reddit.com/r/Amadeusz/s/uIWMIX9ZNJ"
+    },
+    {
+      "stat": "acceleration",
+      "at": 91,
+      "label": "Max benefit",
+      "effect": "Maximum benefit; above this returns are greatly diminished",
+      "valueFactor": 0.333,
+      "valueFactorStatus": "hypothesis (source gives no number)",
+      "confidence": "medium",
+      "source": "https://www.reddit.com/r/Amadeusz/s/PI5f0IuzPp"
+    },
+    {
+      "stat": "offensiveAwareness",
+      "at": 90,
+      "label": "AI-run cap",
+      "effect": "Acceleration bonus on AI attacking runs maxes out at 90",
+      "confidence": "medium",
+      "source": "https://www.reddit.com/r/Amadeusz/s/nWfqAJWHMI"
+    },
+    {
+      "stat": "defensiveAwareness",
+      "at": 70,
+      "label": "Defending accel",
+      "effect": "Below 70, Acceleration −0.5 per missing point in defensive situations",
+      "confidence": "medium",
+      "source": "https://www.reddit.com/r/Amadeusz/s/YiEbJFfGkj"
+    },
+    {
+      "stat": "defensiveAwareness",
+      "at": 90,
+      "label": "Accel link?",
+      "effect": "Some acceleration change in defence (~1 for 1); direction unclear",
+      "confidence": "low",
+      "source": "https://www.reddit.com/r/Amadeusz/s/FjrfAPK6oX"
+    },
+    {
+      "stat": "heading",
+      "at": 89,
+      "label": "Backward header",
+      "effect": "Unlocks the arching-backwards header animation",
+      "confidence": "medium",
+      "source": "https://www.reddit.com/r/Amadeusz/s/8YTvw8qFw9"
+    },
+    {
+      "stat": "lowPass",
+      "at": 90,
+      "label": "Passing threshold",
+      "effect": "Threshold for passing and shooting is 90 (r/Amadeusz, 18 Oct 2026; also applies with Long-range Shooting)",
+      "confidence": "medium",
+      "source": "https://www.reddit.com/r/Amadeusz/comments/1x97fnx/the_threshold_for_passing_and_shooting_is_90/",
+      "sourceNote": "Post title only: Reddit could not be opened, so the details were not read.",
+      "reachBonus": 3,
+      "reachBonusStatus": "app heuristic: the optimizer counts reaching 90 as +3 stat points (the source gives no number)"
+    },
+    {
+      "stat": "loftedPass",
+      "at": 90,
+      "label": "Passing threshold",
+      "effect": "Threshold for passing and shooting is 90 (r/Amadeusz, 18 Oct 2026; also applies with Long-range Shooting)",
+      "confidence": "medium",
+      "source": "https://www.reddit.com/r/Amadeusz/comments/1x97fnx/the_threshold_for_passing_and_shooting_is_90/",
+      "sourceNote": "Post title only: Reddit could not be opened, so the details were not read.",
+      "reachBonus": 3,
+      "reachBonusStatus": "app heuristic: the optimizer counts reaching 90 as +3 stat points (the source gives no number)"
+    },
+    {
+      "stat": "finishing",
+      "at": 90,
+      "label": "Shooting threshold",
+      "effect": "Threshold for passing and shooting is 90 (r/Amadeusz, 18 Oct 2026; also applies with Long-range Shooting)",
+      "confidence": "medium",
+      "source": "https://www.reddit.com/r/Amadeusz/comments/1x97fnx/the_threshold_for_passing_and_shooting_is_90/",
+      "sourceNote": "Post title only: Reddit could not be opened, so the details were not read.",
+      "reachBonus": 3,
+      "reachBonusStatus": "app heuristic: the optimizer counts reaching 90 as +3 stat points (the source gives no number)"
+    }
   ],
   "linear": [
-    { "stat": "kickingPower", "effect": "No thresholds; affects shot and set-piece speed only (not passes)" },
-    { "stat": "jump", "effect": "No thresholds; jump height cm = height + 54 + 0.666 × (Jump − 40)" },
-    { "stat": "stamina", "effect": "No thresholds; below 50% stamina stats fall linearly to −20% at 15% (Speed/Acceleration max −10%)" },
-    { "stat": "ballControl", "effect": "No thresholds (91/92 claim debunked)" }
+    {
+      "stat": "kickingPower",
+      "effect": "No thresholds; affects shot and set-piece speed only (not passes)"
+    },
+    {
+      "stat": "jump",
+      "effect": "No thresholds; jump height cm = height + 54 + 0.666 × (Jump − 40)"
+    },
+    {
+      "stat": "stamina",
+      "effect": "No thresholds; below 50% stamina stats fall linearly to −20% at 15% (Speed/Acceleration max −10%)"
+    },
+    {
+      "stat": "ballControl",
+      "effect": "No thresholds (91/92 claim debunked)"
+    }
   ],
   "obsolete": [
-    { "stat": "acceleration", "at": 90, "effect": "Hard cap at 90 — eF24 only" },
-    { "stat": "tightPossession", "at": 86, "effect": "Threshold — eF24/25 only" },
-    { "stat": "physicalContact", "at": 75, "effect": "Shielding unlock — eF25 only" }
+    {
+      "stat": "acceleration",
+      "at": 90,
+      "effect": "Hard cap at 90 — eF24 only"
+    },
+    {
+      "stat": "tightPossession",
+      "at": 86,
+      "effect": "Threshold — eF24/25 only"
+    },
+    {
+      "stat": "physicalContact",
+      "at": 75,
+      "effect": "Shielding unlock — eF25 only"
+    },
+    {
+      "stat": "speed",
+      "at": 90,
+      "effect": "Diminishing ×0.667 above 90 and ×0.333 above 96 (Amadeusz, May 2026) — replaced by the 96 threshold"
+    }
   ],
   "other": {
-    "weakFootAccuracyPenalty": { "Very High": 0.10, "High": 0.15, "Medium": 0.20, "Low": 0.30, "appliesTo": ["finishing", "lowPass", "loftedPass"], "source": "https://www.reddit.com/r/Amadeusz/s/aaoDRbTeR5" },
-    "heightDribbling": { "sweetSpotCm": [166, 173], "dropAtCm": 174, "exception": "Momentum Dribbling" },
-    "withBall": { "accelerationToDribblingWeight": "2.4 : 1", "speedToDribblingWeight": "1 : 1" },
+    "weakFootAccuracyPenalty": {
+      "Very High": 0.1,
+      "High": 0.15,
+      "Medium": 0.2,
+      "Low": 0.3,
+      "appliesTo": [
+        "finishing",
+        "lowPass",
+        "loftedPass"
+      ],
+      "source": "https://www.reddit.com/r/Amadeusz/s/aaoDRbTeR5"
+    },
+    "heightDribbling": {
+      "sweetSpotCm": [
+        166,
+        173
+      ],
+      "dropAtCm": 174,
+      "exception": "Momentum Dribbling"
+    },
+    "withBall": {
+      "accelerationToDribblingWeight": "2.4 : 1",
+      "speedToDribblingWeight": "1 : 1"
+    },
     "accelerationStage": "First 3 grass stripes (~16 m) of a sprint use only Acceleration"
-  },
-  "communitySkillEffects": [
-    { "skill": "Through Passing", "attrs": ["lowPass", "loftedPass"], "pct": 20, "action": "Through passes", "cap": 99, "source": "https://www.reddit.com/r/eFootball/s/c7qVdchg2s" },
-    { "skill": "Pinpoint Crossing", "attrs": ["loftedPass"], "pct": 10, "action": "Crosses", "cap": 99, "source": "https://docs.google.com/spreadsheets/d/1A33zBtq6cVTghg6ytROST6k70SRMSFoOxEkSvdXSeRk/htmlview" },
-    { "skill": "Long-range Shooting", "attrs": ["finishing"], "pct": 10, "action": "Long-range shots", "cap": 99, "source": "https://www.reddit.com/r/eFootball/s/2EM8hRKiuY" },
-    { "skill": "Penalty Specialist", "attrs": ["finishing"], "flat": 10, "action": "Penalties", "cap": 99, "source": "https://docs.google.com/spreadsheets/d/1A33zBtq6cVTghg6ytROST6k70SRMSFoOxEkSvdXSeRk/htmlview" }
-  ],
-  "communitySkillClaims": [
-    { "skill": "Through Passing", "claim": "+20% Low Pass and Lofted Pass" },
-    { "skill": "Pinpoint Crossing", "claim": "+10% Lofted Pass" },
-    { "skill": "Long-range Shooting", "claim": "+10% Finishing" },
-    { "skill": "Penalty Specialist", "claim": "+10 flat" },
-    { "skill": "Willpower", "claim": "+1 Finishing and Kicking Power per shot, up to +8" },
-    { "skill": "Low Screamer", "claim": "+5.5% ball speed at 40–50% power", "conflict": "Article: local power +0.2 below 50% power" },
-    { "skill": "Fortress", "claim": "+5% Defensive Awareness and Tackling", "conflict": "Article: +6 flat to 4 stats" },
-    { "skill": "Super-sub", "claim": "+5% Finishing, +1% Speed/Acceleration", "conflict": "Article: +1 flat to 25 stats" }
-  ]
+  }
 }

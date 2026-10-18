@@ -7,7 +7,7 @@
   "researcher": "wyzzzzzzz",
   "target": "libUE4.so (ARM64) · NetEase v11.0.0 · SHA256 2ea6b0b56bb59042…",
   "received": "2026-10-18 (screenshots shared by the user)",
-  "note": "Community disassembly claims, not independently verified here. Shown next to the article rules; the engine only uses them as info (action bonuses are never added to Final or to the optimizer)."
+  "note": "Community disassembly claims, not independently verified. Shown in the Skills Lab as text only; nothing here changes stats in the app."
  },
  "pipeline": {
   "stages": [
@@ -73,13 +73,6 @@
    "hypothesis": "Ignores body balance or permanently buffs Finishing.",
    "finding": "In awkward postures injects +7 local Finishing: a 99 player shoots with an effective 106.",
    "type": "local",
-   "action": {
-    "attrs": [
-     "finishing"
-    ],
-    "flat": 7,
-    "label": "Special shooting motions"
-   },
    "check": "agrees"
   },
   {
@@ -174,14 +167,6 @@
    "hypothesis": "Flat +5 to pass stats or auto-locks the trajectory into space.",
    "finding": "Hybrid model: +5 applies to random deviation, trajectory and lofted apex. The turn animation uses the base stat.",
    "type": "local",
-   "action": {
-    "attrs": [
-     "lowPass",
-     "loftedPass"
-    ],
-    "flat": 5,
-    "label": "Through passes"
-   },
    "check": "conflict",
    "vsCommunity": "r/Amadeusz measured +20% instead."
   }

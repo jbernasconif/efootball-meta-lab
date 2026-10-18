@@ -186,6 +186,18 @@ def labelled(text: str, label: str) -> str:
     return m.group(1).strip() if m else ""
 
 
+def read_skills(text: str) -> tuple[list[str], list[str]]:
+    """Card skills and additional skills from the page text.
+
+    The "SKILL FX" toggle above the list only exists on some cards, so it is optional.
+    """
+    skills = [s.strip() for s in section(text, "\nSKILLS\n", "\nADDITIONAL SKILLS").split("\n")
+              if s.strip() and s.strip() != "SKILL FX"]
+    extra = [s.strip() for s in section(text, "ADDITIONAL SKILLS\n", "PLAYER MODEL").split("\n")
+             if s.strip() and s.strip() != "Add skill"]
+    return skills, extra
+
+
 def points(text: str) -> tuple[int, int] | None:
     m = re.search(r"Points\s+(\d+)\s*/\s*(\d+)", text)
     return (int(m.group(1)), int(m.group(2))) if m else None
@@ -226,7 +238,7 @@ def scrape(page: Page, url: str, timeout_ms: int) -> dict:
     # Stats are rendered client-side after a skeleton: wait until all 26 rows have numbers.
     if regional:  # wait on the Portuguese labels, then translate the page in place
         page.wait_for_function("""() => [...document.querySelectorAll('.tabular-nums')]
-            .filter(e => /^\d+$/.test(e.textContent.trim())).length >= 26""", timeout=timeout_ms)
+            .filter(e => /^\\d+$/.test(e.textContent.trim())).length >= 26""", timeout=timeout_ms)
         translate(page)
     page.wait_for_function(JS_STATS_READY, arg=labels, timeout=timeout_ms)
 
@@ -268,9 +280,7 @@ def scrape(page: Page, url: str, timeout_ms: int) -> dict:
         style = styles[0]
     def_style = styles[1] if len(styles) > 1 else ""
 
-    skills = [s for s in section(text, "SKILLS\nSKILL FX\n", "ADDITIONAL SKILLS").split("\n") if s.strip()]
-    extra = [s for s in section(text, "ADDITIONAL SKILLS\n", "PLAYER MODEL").split("\n")
-             if s.strip() and s.strip() != "Add skill"]
+    skills, extra = read_skills(text)
 
     pos_ratings = {}
     for p in POSITIONS:

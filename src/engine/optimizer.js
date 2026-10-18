@@ -57,26 +57,43 @@ export function skillStates(card, skillsDB, roles, freqs) {
 
 // Community breakpoints with a valueFactor make stat points above a threshold worth less (e.g. Speed > 90).
 // utility(v) = v up to the first threshold, then each segment scaled by that threshold's factor.
+// Thresholds with a reachBonus (e.g. Passing/Shooting 90) add that bonus once the stat reaches them.
 export function curveValue(v, bps) {
   if (!bps?.length) return v;
   let out = 0, prev = 0, factor = 1;
-  for (const b of bps) {
+  for (const b of bps.filter((x) => x.valueFactor != null)) {
     if (v <= b.at) break;
     out += (b.at - prev) * factor;
     prev = b.at;
     factor = b.valueFactor;
   }
-  return out + (v - prev) * factor;
+  const reached = bps.reduce((s, b) => s + (b.reachBonus && v >= b.at ? b.reachBonus : 0), 0);
+  return out + (v - prev) * factor + reached;
 }
 
 export function curvesFrom(breakpoints) {
   const out = {};
-  for (const b of breakpoints?.breakpoints ?? []) if (b.valueFactor) (out[b.stat] ??= []).push(b);
+  for (const b of breakpoints?.breakpoints ?? []) if (b.valueFactor != null || b.reachBonus) (out[b.stat] ??= []).push(b);
   for (const k of Object.keys(out)) out[k].sort((a, b) => a.at - b.at);
   return out;
 }
 
-export function makeObjective({ card, prog, mech, weights, states, condition = 'C', managerLevel = 'none', boosters = {}, rating, managerBoosts = {}, curves = {} }) {
+// Point-budget goals for this position (data/roles.v1.json "targets"), e.g. forwards: Offensive Awareness 90 with ≤12 points.
+export function targetsFor(roles, position) {
+  return Object.values(roles?.targets?.groups ?? {}).filter((g) => g.positions.includes(position)).flatMap((g) => g.goals);
+}
+
+export function maxSpendFor(roles, position) {
+  return Object.assign({}, ...Object.values(roles?.targets?.groups ?? {}).filter((g) => g.positions.includes(position)).map((g) => g.maxSpend ?? {}));
+}
+
+export function categorySpend(prog, alloc, cat) {
+  let c = 0;
+  for (let l = 1; l <= (alloc[cat] ?? 0); l++) c += levelCost(prog, l);
+  return c;
+}
+
+export function makeObjective({ card, prog, mech, weights, states, condition = 'C', managerLevel = 'none', boosters = {}, rating, managerBoosts = {}, curves = {}, targets = [] }) {
   const wSum = Object.values(weights).reduce((a, b) => a + b, 0) || 1;
   const r = rating ?? card.positionRating ?? card.overall;
   const attrs = Object.keys(weights).filter((a) => ATTRS.includes(a));
@@ -98,8 +115,17 @@ export function makeObjective({ card, prog, mech, weights, states, condition = '
       perAttr[a] = { expected: ev, capLoss: loss, weight: weights[a] };
       total += weights[a] * util;
     }
+    // Goals count on the displayed value (no skills) and only while the category stays within its point budget.
+    const goals = [];
+    for (const g of targets) {
+      if (categorySpend(prog, allocation, g.category) > g.maxPoints) continue;
+      const B = card.stats[g.stat] + (d[g.stat] ?? 0);
+      const v = pipelineValue({ base: B, condDelta: conditionDelta(mech, g.stat, condition, r, card.position),
+        mgrDelta: managerDelta(mech, managerLevel, B) + (managerBoosts[g.stat] ?? 0), postCap: boosters[g.stat] ?? 0 }, mech.caps).extended;
+      if (v >= g.at) { total += g.bonus; goals.push(g); }
+    }
     const value = total / wSum;
-    return detail ? { value, perAttr } : value;
+    return detail ? { value, perAttr, goals } : value;
   };
 }
 
@@ -110,8 +136,10 @@ function costOfNext(prog, alloc, cat, k) {
 }
 
 // Greedy marginal-gain-per-point with lookahead (handles cost steps), then pairwise swap refinement.
-export function optimize({ prog, budget, score, lookahead = 4, allowed }) {
+// maxSpend: { category: max points } hard caps (e.g. forwards: Dexterity and Lower Body ≤ 12 points).
+export function optimize({ prog, budget, score, lookahead = 4, allowed, maxSpend = {} }) {
   const cats = prog.categories.map((c) => c.id).filter((c) => !allowed || allowed.includes(c));
+  const withinCaps = (a, cat) => maxSpend[cat] == null || categorySpend(prog, a, cat) <= maxSpend[cat];
   const alloc = emptyAllocation(prog);
   const steps = [];
   let current = score(alloc);
@@ -123,6 +151,7 @@ export function optimize({ prog, budget, score, lookahead = 4, allowed }) {
         const cost = costOfNext(prog, alloc, cat, k);
         if (spent + cost > budget) break;
         const trial = { ...alloc, [cat]: alloc[cat] + k };
+        if (!withinCaps(trial, cat)) break;
         const gain = score(trial) - current;
         const ratio = gain / cost;
         if (gain > 1e-9 && (!best || ratio > best.ratio + 1e-12)) best = { cat, k, cost, gain, ratio };
@@ -142,7 +171,7 @@ export function optimize({ prog, budget, score, lookahead = 4, allowed }) {
       for (const j of cats) {
         if (i === j) continue;
         const trial = { ...alloc, [i]: alloc[i] - 1, [j]: alloc[j] + 1 };
-        if (totalCost(prog, trial) > budget) continue;
+        if (totalCost(prog, trial) > budget || !withinCaps(trial, j)) continue;
         const s = score(trial);
         if (s > current + 1e-9) {
           steps.push({ cat: j, k: 1, swapFrom: i, gain: s - current, ratio: null });

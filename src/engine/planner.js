@@ -86,17 +86,6 @@ export function toggleableSkills(card, skillsDB) {
   return out;
 }
 
-// Community action effects of skills the card (or an added skill slot) has: r/Amadeusz measurements
-// (capped at 99) and disassembly-slide claims for skills outside the article (local, not capped).
-// Info only: never added to Final and never used by the optimizer.
-export function communityEffectsFor(card, breakpoints, claims) {
-  const names = new Set((card.skills ?? []).map((s) => s.toLowerCase()));
-  const measured = (breakpoints?.communitySkillEffects ?? []).map((e) => ({ ...e, by: 'r/Amadeusz' }));
-  const slides = (claims?.otherSkills ?? []).filter((c) => c.action)
-    .map((c) => ({ skill: c.name, attrs: c.action.attrs, flat: c.action.flat, pct: c.action.pct, action: c.action.label, cap: null, by: 'disassembly slides' }));
-  return [...measured, ...slides].filter((e) => names.has(e.skill.toLowerCase()));
-}
-
 // Action (local) bonuses per stat: documented rule = the maximum applies, never the sum.
 export function localBonuses(active, skillsDB) {
   const best = {};
@@ -153,7 +142,7 @@ export function combineBoosters(cardBoosters = {}, slot2Name, catalog) {
  * opts: { condition, managerLevel, rating, active: [skillIds], opponents, boosters }
  */
 export function statBreakdown(card, prog, allocation, mech, skillsDB, opts = {}) {
-  const { condition = 'C', managerLevel = 'none', active = [], opponents = 2, boosters = {}, managerBoosts = {}, community = [] } = opts;
+  const { condition = 'C', managerLevel = 'none', active = [], opponents = 2, boosters = {}, managerBoosts = {} } = opts;
   const rating = opts.rating ?? card.positionRating ?? card.overall;
   const d = progressionDeltas(prog, allocation);
   // Momentum Dribbling and Attacking Surge never apply together (documented ST02).
@@ -179,17 +168,9 @@ export function statBreakdown(card, prog, allocation, mech, skillsDB, opts = {})
     const lb = local[a]?.bonus ?? 0;
     const v = pipelineValue({ base: B, condDelta: cond, mgrDelta: mgr, temp: temp[a] ?? 0, postCap: boosters[a] ?? 0, local: lb }, mech.caps);
     // Community skill effects (e.g. Through Passing +20%): applied to the final stat for that action, rounded up, capped at 99.
-    // Info only: the % upgrade over Final for that action; not part of Final or the optimizer.
-    const comm = community.filter((e) => e.attrs.includes(a)).map((e) => {
-      const raw = e.flat ? v.extended + e.flat : Math.ceil(v.extended * (1 + e.pct / 100));
-      const value = Math.max(e.cap == null ? raw : Math.min(e.cap, raw), v.extended);
-      const gain = value - v.extended;
-      return { skill: e.skill, action: e.action, by: e.by ?? 'community', cap: e.cap, label: e.flat ? `+${e.flat}` : `+${e.pct}%`, value, gain,
-        pct: v.extended ? Math.round((gain / v.extended) * 1000) / 10 : 0 };
-    }).sort((x, y) => y.value - x.value);
     // v.local = value used for that one action (not capped); actionBonus/actionSource describe it.
     return [a, { A, prog: d[a] ?? 0, B, cond, mgr, mgrProf, mgrBoost, skill: temp[a] ?? 0, sources: sources[a] ?? [], boost: boosters[a] ?? 0,
-      actionBonus: lb, actionSource: local[a]?.source ?? '', community: comm,
+      actionBonus: lb, actionSource: local[a]?.source ?? '',
       // What the game shows on the squad screen: base + training + manager, 99 cap, then boosters (no condition/skills).
       ingame: pipelineValue({ base: B, mgrDelta: mgr, postCap: boosters[a] ?? 0 }, mech.caps).extended, ...v }];
   }));

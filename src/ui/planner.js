@@ -2,13 +2,10 @@
 import { esc, statusBadge } from './common.js';
 import { GROUPS, LABELS, normalizeAttrKey } from '../engine/attributes.js';
 import { PLAYSTYLES } from './managers.js';
-import { summarize, skillBoosts, maxBoost, statBreakdown, toggleableSkills, combineBoosters, withNoBreach, capBreaches, communityEffectsFor } from '../engine/planner.js';
+import { summarize, skillBoosts, maxBoost, statBreakdown, toggleableSkills, combineBoosters, withNoBreach, capBreaches } from '../engine/planner.js';
 import { emptyAllocation } from '../engine/progression.js';
 import { matchCardSkills } from '../engine/skills.js';
-import { weightsFor, skillStates, makeObjective, optimize, curvesFrom, curveValue } from '../engine/optimizer.js';
-
-// % upgrade of an action bonus over the Final value (info only).
-const pctUp = (bonus, base) => (base ? Math.round((bonus / base) * 1000) / 10 : 0);
+import { weightsFor, skillStates, makeObjective, optimize, curvesFrom, curveValue, targetsFor, maxSpendFor } from '../engine/optimizer.js';
 
 // 99-cap check per active stat skill: full benefit only while the stat before the skill is ≤ 99 − bonus.
 function skillCaps(D, active, rows, opponents) {
@@ -40,8 +37,7 @@ function cardCtx(D, card) {
   ui.ctxByCard ??= {};
   return (ui.ctxByCard[card.id] ??= {
     condition: 'C', opponents: 2, managerId: null, playstyle: 'quickCounter', proficiency: 70,
-    active: [...withoutConflicts(toggleableSkills(card, D.skills).filter((t) => !t.fromTeammate).map((t) => t.id)),
-      ...communityEffectsFor(card, D.breakpoints, D.skillClaims).map((e) => `comm:${e.skill}`)],
+    active: withoutConflicts(toggleableSkills(card, D.skills).filter((t) => !t.fromTeammate && t.kind !== 'local').map((t) => t.id)),
   });
 }
 
@@ -65,7 +61,7 @@ function suggestions(app, card, ctx, allBoosters) {
   const group = D.roles.positionGroup[card.position];
   const roles = Object.keys(D.roles.profiles[group].tactical);
   ui.role = roles.includes(ui.role) ? ui.role : roles[0];
-  const common = { card, prog: D.progression, mech: D.mechanics };
+  const common = { card, prog: D.progression, mech: D.mechanics, targets: targetsFor(D.roles, card.position), curves: curvesFrom(D.breakpoints) };
   const neutral = [{ prob: 1, temp: {}, ids: [] }];
   const defs = {
     auto: ['Balanced', 'Spreads points over the stats that matter most for this position. No skills, boosters or coach considered.', weightsFor(D.roles, card.position, 'auto'), neutral],
@@ -79,16 +75,16 @@ function suggestions(app, card, ctx, allBoosters) {
   const out = {};
   for (const [k, [name, desc, weights, states]] of Object.entries(defs)) {
     const score = makeObjective({ ...common, weights, states });
-    const r = optimize({ prog: D.progression, budget: card.progressionPoints, score, lookahead: D.roles.optimizer.lookahead });
+    const r = optimize({ prog: D.progression, budget: card.progressionPoints, score, lookahead: D.roles.optimizer.lookahead, maxSpend: maxSpendFor(D.roles, card.position) });
     out[k] = { name, desc, allocation: r.allocation, spent: r.spent, score };
   }
   const fullW = weightsFor(D.roles, card.position, 'auto');
   const fullStates = skillStates(card, D.skills, D.roles, app.state.opt.freqs);
-  const fullScore = makeObjective({ ...common, ...full, weights: fullW, states: fullStates, curves: curvesFrom(D.breakpoints) });
-  const complete = optimize({ prog: D.progression, budget: card.progressionPoints, score: fullScore, lookahead: D.roles.optimizer.lookahead });
-  out.complete = { name: 'Complete', desc: 'Uses everything on this card: own skills, boosters, coach proficiency and boosts, condition and speed/acceleration breakpoints. Teammate effects (e.g. Visionary Pass) are left out.', allocation: complete.allocation, spent: complete.spent, score: fullScore, featured: true };
+  const fullScore = makeObjective({ ...common, ...full, weights: fullW, states: fullStates });
+  const complete = optimize({ prog: D.progression, budget: card.progressionPoints, score: fullScore, lookahead: D.roles.optimizer.lookahead, maxSpend: maxSpendFor(D.roles, card.position) });
+  out.complete = { name: 'Complete', desc: 'Uses everything on this card: own skills, boosters, coach proficiency and boosts, condition, speed/acceleration breakpoints and the 90 passing/shooting threshold. Teammate effects (e.g. Visionary Pass) are left out.', allocation: complete.allocation, spent: complete.spent, score: fullScore, featured: true };
   const safeScore = withNoBreach(fullScore, card, D.progression, D.mechanics, D.skills, full);
-  const safe = optimize({ prog: D.progression, budget: card.progressionPoints, score: safeScore, lookahead: D.roles.optimizer.lookahead });
+  const safe = optimize({ prog: D.progression, budget: card.progressionPoints, score: safeScore, lookahead: D.roles.optimizer.lookahead, maxSpend: maxSpendFor(D.roles, card.position) });
   out.nocap = { name: 'No cap breach', desc: 'Same as Complete, but no stat may go over 99 even with all its own skills active, so no point is wasted.', allocation: safe.allocation, spent: safe.spent, score: safeScore, featured: true };
   // Points each build loses to the cap in the current context (own skills on, boosters, coach, condition).
   for (const s of Object.values(out)) {
@@ -105,10 +101,9 @@ function skillOptions(app, baseCard, b, current) {
   ui.allSkills ??= [...new Set(app.state.cards.flatMap((c) => c.skills ?? []))].sort((x, y) => x.localeCompare(y));
   const own = new Set(baseCard.skills ?? []);
   const taken = new Set((b.extraSkills ?? []).filter((x) => x && x !== current));
-  const fx = new Set((app.D.breakpoints?.communitySkillEffects ?? []).map((e) => e.skill));
   const article = new Set(app.D.skills.skills.map((s) => s.name));
   return ui.allSkills.filter((s) => !own.has(s) && !taken.has(s))
-    .map((s) => `<option value="${esc(s)}" ${s === current ? 'selected' : ''}>${esc(s)}${fx.has(s) ? ' ◇' : article.has(s) ? ' ★' : ''}</option>`).join('');
+    .map((s) => `<option value="${esc(s)}" ${s === current ? 'selected' : ''}>${esc(s)}${article.has(s) ? ' ★' : ''}</option>`).join('');
 }
 
 // The card plus up to 5 added skills (like the game's additional skill slots).
@@ -242,8 +237,7 @@ export function render(root, app, opts = {}) {
     b.extraSkills[Number(el.dataset.slot)] = el.value || null;
     const c = cardCtx(D, withExtraSkills(baseCard, b));
     const now = withExtraSkills(baseCard, b);
-    const ids = [...toggleableSkills(now, D.skills).filter((t) => !t.fromTeammate && t.id && now.skills.some((s) => s.toLowerCase() === t.name.toLowerCase() || (t.id === 'ordinary_heading' && s === 'Heading'))).map((t) => t.id),
-      ...communityEffectsFor(now, D.breakpoints, D.skillClaims).map((e) => `comm:${e.skill}`)];
+    const ids = [...toggleableSkills(now, D.skills).filter((t) => !t.fromTeammate && t.id && now.skills.some((s) => s.toLowerCase() === t.name.toLowerCase() || (t.id === 'ordinary_heading' && s === 'Heading'))).map((t) => t.id)];
     for (const id of ids) if (!c.active.includes(id)) c.active = toggleSkill(c.active, id);
     app.update();
   }));
@@ -274,7 +268,6 @@ const SRC = [
   ['mgr', 'Manager', 'Manager proficiency adjustment'],
   ['skill', 'Skills', 'In-match skill bonus while active'],
   ['boost', 'Booster', 'Booster (added after the 99 cap)'],
-  ['act', 'Action bonus', 'Skill bonus for one action (e.g. Phenomenal Finishing on special shots): added after the cap, so it is NOT capped at 99'],
   ['lost', 'Lost to cap', 'Points that go above 99 and are discarded'],
 ];
 const CONDS = [['A', '↑', 'Excellent'], ['B', '↗', 'Good'], ['C', '→', 'Normal'], ['D', '↘', 'Bad'], ['E', '↓', 'Very bad']];
@@ -289,8 +282,8 @@ function bar(r, bps = []) {
     ${seg('base', 0, s1, `Base ${r.A}`)}${seg('prog', s1, s2, `Training +${r.prog}`)}
     ${s3 >= s2 ? seg('cond', s2, s3, `Condition +${s3 - s2}`) : seg('neg', s3, s2, `Condition ${r.cond}`)}
     ${seg('mgr', Math.min(s3, 99), s4, `Manager +${r.mgr}`)}${seg('skill', s4, s5, `Skills +${s5 - s4}`)}
-    ${seg('boost', s5, s6, `Booster +${s6 - s5}`)}${seg('act', s6, s6 + r.actionBonus, `${r.actionSource} +${r.actionBonus} on that action → ${r.local}`)}
-    ${lost ? seg('lost', s6 + r.actionBonus, s6 + r.actionBonus + lost, `${lost} lost to the 99 cap`) : ''}
+    ${seg('boost', s5, s6, `Booster +${s6 - s5}`)}
+    ${lost ? seg('lost', s6, s6 + lost, `${lost} lost to the 99 cap`) : ''}
     ${bps.map((b) => `<b class="bp ${r.extended >= b.at ? 'hit' : ''}" style="left:${pctOf(b.at)}" title="${esc(`${b.at} · ${b.label}: ${b.effect} (community, ${b.confidence})`)}"></b>`).join('')}
     <b class="cap" style="left:${pctOf(99)}" title="99 cap"></b></div>`;
 }
@@ -316,17 +309,16 @@ function toggleSkill(active, id) {
 
 function breakdownCard(app, card, b, alloc) {
   const { D } = app;
-  const toggles = toggleableSkills(card, D.skills);
+  const toggles = toggleableSkills(card, D.skills).filter((t) => t.kind !== 'local'); // action-only bonuses are not shown
   const ctx = cardCtx(D, card);
-  const commFx = communityEffectsFor(card, D.breakpoints, D.skillClaims);
   ui.ctx = ctx;
-  ctx.active = ctx.active.filter((id) => toggles.some((t) => t.id === id) || commFx.some((e) => id === `comm:${e.skill}`));
+  ctx.active = ctx.active.filter((id) => toggles.some((t) => t.id === id));
   // Slot 1 = the card's own booster(s). Slot 2 = selectable +1 booster when the card's second slot is empty (as on eFHUB).
   const cardNames = card.boosterNames?.length ? card.boosterNames : Object.entries(b.boosters ?? {}).filter(([, v]) => v).map(([a, v]) => `${LABELS[a]} +${v}`);
   const slot2Free = cardNames.length < 2;
   if (!slot2Free) b.booster2 = null;
   const allBoosters = combineBoosters(b.boosters, b.booster2, D.boosters);
-  const rows = statBreakdown(card, D.progression, alloc, D.mechanics, D.skills, { ...ctx, rating: b.rating, boosters: ctx.boostersOff ? {} : allBoosters, community: commFx.filter((e) => ctx.active.includes(`comm:${e.skill}`)) });
+  const rows = statBreakdown(card, D.progression, alloc, D.mechanics, D.skills, { ...ctx, rating: b.rating, boosters: ctx.boostersOff ? {} : allBoosters });
   const hasBoosters = Object.values(b.boosters ?? {}).some(Boolean);
   const boosterNames = [...cardNames, ...(b.booster2 ? [`${b.booster2} +1`] : [])];
   const unsplit = card.source?.method === 'scraper' && !card.boostersSeparated;
@@ -357,7 +349,6 @@ function breakdownCard(app, card, b, alloc) {
         </select>` : ''}</div></div>
       ${toggles.length ? `<div style="flex:1 1 100%"><label>Skills active in this moment</label><div class="pills">${toggles.map((t) =>
         pill('skill', t.id, ctx.active.includes(t.id), `${t.fromTeammate ? '<span class="tm">teammate</span>' : ''}${t.kind === 'local' ? '<span class="zap">⚡</span>' : ''}${esc(t.name)}`, `${t.kind === 'local' ? 'Action bonus · ' : ''}When: ${t.when}`)).join('')}
-        ${[...new Set(commFx.map((e) => e.skill))].map((name) => pill('skill', `comm:${name}`, ctx.active.includes(`comm:${name}`), `<span class="comm">&#9671;</span>${esc(name)}`, commFx.filter((e) => e.skill === name).map((e) => `${e.by}: ${e.flat ? `+${e.flat}` : `+${e.pct}%`} on ${e.action}${e.cap ? ', capped at 99' : ''}`).join(' · ') + ' — shown as % upgrade, not added to Final')).join('')}
         ${toggles.some((t) => t.id === 'magnetic_feet') && ctx.active.includes('magnetic_feet') ? `<span class="opp">Opponents within 5 m <input type="range" min="1" max="4" value="${ctx.opponents}" data-action="opp"> <b>${ctx.opponents}</b></span>` : ''}</div></div>` : ''}
     </div>
     ${skillCaps(D, ctx.active, rows, ctx.opponents)}
@@ -366,8 +357,8 @@ function breakdownCard(app, card, b, alloc) {
     <div class="legend2">${SRC.map(([k, l, t]) => `<span title="${esc(t)}"><i class="dot2 s-${k}"></i>${l}</span>`).join('')}<span><i class="capmark"></i>99 cap</span></div>
 
     <div class="xscroll"><table class="bk">
-      <thead><tr><th>Stat</th><th class="n">Base</th><th class="n t-prog">Train</th><th class="n t-boost">Boost</th><th class="n t-mgr">Mgr</th><th class="n ingame" title="What the game shows: base + training + booster + manager">In-game</th><th class="n t-cond">Cond</th><th class="n t-skill" title="In-match stat bonus while the skill is active (goes through the 99 cap)">Skill</th><th class="n t-act" title="% upgrade for one action only — ⚡ article skills, ◇ community (r/Amadeusz, disassembly slides). Not included in Final or the optimizer.">Action %</th><th class="n">Final</th><th style="width:34%"></th></tr></thead>
-      <tbody>${Object.entries(GROUPS).map(([g, attrs]) => `<tr class="grp"><td colspan="11">${g}</td></tr>${attrs.map((a) => {
+      <thead><tr><th>Stat</th><th class="n">Base</th><th class="n t-prog">Train</th><th class="n t-boost">Boost</th><th class="n t-mgr">Mgr</th><th class="n ingame" title="What the game shows: base + training + booster + manager">In-game</th><th class="n t-cond">Cond</th><th class="n t-skill" title="In-match stat bonus while the skill is active (goes through the 99 cap)">Skill</th><th class="n">Final</th><th style="width:34%"></th></tr></thead>
+      <tbody>${Object.entries(GROUPS).map(([g, attrs]) => `<tr class="grp"><td colspan="10">${g}</td></tr>${attrs.map((a) => {
         const r = rows[a];
         const lost = r.capLoss + Math.max(0, r.B - 99);
         return `<tr class="${lost ? 'has-lost' : ''}">
@@ -379,7 +370,6 @@ function breakdownCard(app, card, b, alloc) {
           <td class="n ingame"><b class="${statColor(r.ingame)}">${r.ingame}</b></td>
           ${cell(r.cond, r.cond < 0 ? 'neg' : 'cond', 'Condition arrow')}
           ${r.skill ? `<td class="n t-skill" title="${esc(r.sources.join(', '))}">+${r.skill}</td>` : '<td class="n dim">·</td>'}
-          ${r.actionBonus || r.community.length ? `<td class="n act" title="${esc([...(r.actionBonus ? [`${r.actionSource} +${r.actionBonus} on special motions → ${r.local} (article, not capped)`] : []), ...r.community.map((c) => `${c.skill} ${c.label} on ${c.action} → ${c.value} (${c.by}${c.cap ? ', capped at 99' : ''})`)].join(' · '))} · Not included in Final">${r.actionBonus ? `<span class="zapv">⚡+${pctUp(r.actionBonus, r.extended)}%</span>` : ''}${r.community.map((c) => `<span class="commv">&#9671;+${c.pct}%</span>`).join('')}</td>` : '<td class="n dim">·</td>'}
           <td class="n"><b class="final ${statColor(r.extended)} ${r.ordinary >= 99 ? 'is-max' : ''}">${r.extended}</b></td>
           <td>${bar(r, bpsByStat[a])}</td></tr>`;
       }).join('')}`).join('')}</tbody>
@@ -469,7 +459,7 @@ function bpChip(r, bps = []) {
   const v = r.extended;
   let out = '';
   // Past a diminishing-returns line: how many raw points are "lost" vs their full value (Amadeusz curve).
-  const curve = bps.filter((b) => b.valueFactor).sort((a, b) => a.at - b.at);
+  const curve = bps.filter((b) => b.valueFactor != null).sort((a, b) => a.at - b.at);
   const past = curve.filter((b) => v > b.at).pop();
   if (past) {
     const loss = v - curveValue(v, curve);
