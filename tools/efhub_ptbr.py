@@ -115,7 +115,8 @@ def main() -> int:
         browser.close()
 
     # Keep a pairing only when it is clearly the majority for that text.
-    table, unsure = {}, {}
+    # Buttons that only appear after pressing Máx are not on the aligned pages; observed on 2026-10-18.
+    table, unsure = {"Redefinir": "Reset"}, {}
     for a, cnt in votes.items():
         (b, n), total = cnt.most_common(1)[0], sum(cnt.values())
         if n >= 2 and n / total >= 0.8 or total == 1:

@@ -225,8 +225,8 @@ def scrape(page: Page, url: str, timeout_ms: int) -> dict:
     labels = list(STAT_LABELS)
     # Stats are rendered client-side after a skeleton: wait until all 26 rows have numbers.
     if regional:  # wait on the Portuguese labels, then translate the page in place
-        inv = {v: k for k, v in PTBR.items() if v in STAT_LABELS}
-        page.wait_for_function(JS_STATS_READY, arg=[inv.get(l, l) for l in labels], timeout=timeout_ms)
+        page.wait_for_function("""() => [...document.querySelectorAll('.tabular-nums')]
+            .filter(e => /^\d+$/.test(e.textContent.trim())).length >= 26""", timeout=timeout_ms)
         translate(page)
     page.wait_for_function(JS_STATS_READY, arg=labels, timeout=timeout_ms)
 
