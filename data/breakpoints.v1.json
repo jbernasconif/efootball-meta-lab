@@ -1,6 +1,6 @@
 {
   "schema": "efml.breakpoints",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "status": "community",
   "source": "Zhuhai Amadeusz in-game tests (r/Amadeusz), via Skye's eFootball Encyclopedia (public Google Sheet that links each finding to its r/Amadeusz post). Reddit itself could not be opened, so post dates and sample sizes were not checked.",
   "sheet": "https://docs.google.com/spreadsheets/d/1A33zBtq6cVTghg6ytROST6k70SRMSFoOxEkSvdXSeRk/htmlview",
@@ -11,7 +11,7 @@
       "stat": "speed",
       "at": 96,
       "label": "No gain 96–99",
-      "effect": "From 96 to 99 speed shows no visible improvement; aim for 90–96",
+      "effect": "From 96 up there is no benefit; only breaking 100 with a booster gives more",
       "valueFactor": 0,
       "confidence": "medium",
       "source": "User meta guidance, 18 Oct 2026 (replaces the 90/96 diminishing curve)"
@@ -19,29 +19,11 @@
     {
       "stat": "speed",
       "at": 99,
-      "label": "Gains past 99",
-      "effect": "Above 99 (boosters) speed improves again",
+      "label": "Booster past 100",
+      "effect": "Speed only improves again above 99, with a booster (100+)",
       "valueFactor": 1,
       "confidence": "medium",
       "source": "User meta guidance, 18 Oct 2026"
-    },
-    {
-      "stat": "acceleration",
-      "at": 88,
-      "label": "Long stride",
-      "effect": "Unlocks the longer-stride running animation",
-      "confidence": "medium",
-      "source": "https://www.reddit.com/r/Amadeusz/s/uIWMIX9ZNJ"
-    },
-    {
-      "stat": "acceleration",
-      "at": 91,
-      "label": "Max benefit",
-      "effect": "Maximum benefit; above this returns are greatly diminished",
-      "valueFactor": 0.333,
-      "valueFactorStatus": "hypothesis (source gives no number)",
-      "confidence": "medium",
-      "source": "https://www.reddit.com/r/Amadeusz/s/PI5f0IuzPp"
     },
     {
       "stat": "offensiveAwareness",
@@ -147,6 +129,16 @@
       "stat": "speed",
       "at": 90,
       "effect": "Diminishing ×0.667 above 90 and ×0.333 above 96 (Amadeusz, May 2026) — replaced by the 96 threshold"
+    },
+    {
+      "stat": "acceleration",
+      "at": 88,
+      "effect": "Long stride: Unlocks the longer-stride running animation — no longer exists (user meta guidance, 18 Oct 2026)"
+    },
+    {
+      "stat": "acceleration",
+      "at": 91,
+      "effect": "Max benefit: Maximum benefit; above this returns are greatly diminished — no longer exists (user meta guidance, 18 Oct 2026)"
     }
   ],
   "other": {
