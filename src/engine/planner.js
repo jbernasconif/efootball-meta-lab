@@ -189,3 +189,54 @@ export function summarize(card, prog, allocation, skillsDB) {
   }
   return { rows, spent, left: card.progressionPoints - spent, wastedPoints, wastedStats: rows.reduce((s, r) => s + r.wastedStats, 0) };
 }
+
+// Points spent in one category for a number of levels.
+function pointsFor(prog, levels) {
+  let c = 0;
+  for (let l = 1; l <= levels; l++) c += levelCost(prog, l);
+  return c;
+}
+
+/**
+ * Auto build: applies only the user's position rules (data/roles.v1.json "autoBuild") and leaves the rest of the
+ * points unspent. Each rule picks the cheapest level that reaches the highest target within maxPoints; when no
+ * target is reachable it spends maxPoints to get close. minPoints is spent anyway (Lower Body also raises
+ * Stamina and Kicking Power) unless that would push the stat past `ceiling`. No trained stat may breach 99.
+ * Returns { allocation, spent, notes: [{ rule, levels, points, value, reached }] } or null if no rule applies.
+ */
+export function autoBuild(card, prog, mech, skillsDB, roles, ctx = {}) {
+  const group = (roles.autoBuild?.groups ?? []).find((g) => g.positions.includes(card.position));
+  if (!group || !card.progressionPoints) return null;
+  const { condition = 'C', managerLevel = 'none', managerBoosts = {}, boosters = {} } = ctx;
+  const alloc = Object.fromEntries(prog.categories.map((c) => [c.id, 0]));
+  const shown = (stat, levels) => {
+    const B = card.stats[stat] + levels;
+    return pipelineValue({ base: B, mgrDelta: managerDelta(mech, managerLevel, B) + (managerBoosts[stat] ?? 0), postCap: boosters[stat] ?? 0 }, mech.caps).extended;
+  };
+  const notes = [];
+  for (const rule of group.rules) {
+    const maxL = (() => { let l = 0; while (pointsFor(prog, l + 1) <= rule.maxPoints) l++; return l; })();
+    const minL = (() => { let l = 0; while (rule.minPoints && pointsFor(prog, l) < rule.minPoints) l++; return l; })();
+    const now = shown(rule.stat, 0);
+    let levels;
+    if (rule.skipIfReached && now >= Math.max(...rule.targets)) levels = 0;
+    else {
+      const target = [...rule.targets].sort((a, b) => b - a).find((t) => shown(rule.stat, maxL) >= t);
+      levels = target != null ? [...Array(maxL + 1).keys()].find((l) => shown(rule.stat, l) >= target) : maxL;
+      // Spend at least minPoints, but never past the ceiling (e.g. speed 96) when it can be avoided.
+      while (levels < minL && (rule.ceiling == null || shown(rule.stat, levels + 1) <= rule.ceiling)) levels++;
+    }
+    // No trained stat of this category may pass 99 (own skills, coach and condition included).
+    const ok = (l) => !capBreaches(card, prog, { ...alloc, [rule.category]: l }, mech, skillsDB, { condition, managerLevel, managerBoosts, rating: ctx.rating }).length;
+    while (levels > 0 && !ok(levels)) levels--;
+    alloc[rule.category] = levels;
+    const value = shown(rule.stat, levels);
+    notes.push({ rule, levels, points: pointsFor(prog, levels), from: now, value, reached: rule.targets.filter((t) => value >= t) });
+  }
+  // Never spend more than the card has.
+  while (totalCost(prog, alloc) > card.progressionPoints) {
+    const k = Object.keys(alloc).filter((c) => alloc[c]).sort((a, b) => alloc[b] - alloc[a])[0];
+    alloc[k]--;
+  }
+  return { group: group.name, allocation: alloc, spent: totalCost(prog, alloc), notes };
+}

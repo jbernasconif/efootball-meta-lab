@@ -2,10 +2,10 @@
 import { esc, statusBadge } from './common.js';
 import { GROUPS, LABELS, normalizeAttrKey } from '../engine/attributes.js';
 import { PLAYSTYLES } from './managers.js';
-import { summarize, skillBoosts, maxBoost, statBreakdown, toggleableSkills, combineBoosters, withNoBreach, capBreaches } from '../engine/planner.js';
+import { summarize, skillBoosts, maxBoost, statBreakdown, toggleableSkills, combineBoosters, autoBuild } from '../engine/planner.js';
 import { emptyAllocation } from '../engine/progression.js';
 import { matchCardSkills } from '../engine/skills.js';
-import { weightsFor, skillStates, makeObjective, optimize, curvesFrom, curveValue, targetsFor, maxSpendFor } from '../engine/optimizer.js';
+import { curvesFrom, curveValue } from '../engine/optimizer.js';
 
 // 99-cap check per active stat skill: full benefit only while the stat before the skill is ≤ 99 − bonus.
 function skillCaps(D, active, rows, opponents) {
@@ -54,46 +54,11 @@ function applyManager(D, ctx) {
   return m;
 }
 
-function suggestions(app, card, ctx, allBoosters) {
-  const key = JSON.stringify([card.id, ctx.condition, ctx.managerLevel, ctx.managerBoosts, allBoosters, app.state.opt.freqs, ui.role]);
-  if (ui.suggestKey === key && ui.suggestions) return ui.suggestions;
-  const { D } = app;
-  const group = D.roles.positionGroup[card.position];
-  const roles = Object.keys(D.roles.profiles[group].tactical);
-  ui.role = roles.includes(ui.role) ? ui.role : roles[0];
-  const common = { card, prog: D.progression, mech: D.mechanics, targets: targetsFor(D.roles, card.position), curves: curvesFrom(D.breakpoints) };
-  const neutral = [{ prob: 1, temp: {}, ids: [] }];
-  const defs = {
-    auto: ['Balanced', 'Spreads points over the stats that matter most for this position. No skills, boosters or coach considered.', weightsFor(D.roles, card.position, 'auto'), neutral],
-    meta: ['Meta', 'Leans toward pace, physical contact and stamina — the competitive meta priorities for this position. No skills, boosters or coach considered.', weightsFor(D.roles, card.position, 'meta'), neutral],
-    role: [ui.role, `Weights tuned for the ${ui.role} role (pick another role on the right).`, weightsFor(D.roles, card.position, 'tactical', ui.role), neutral],
-    skills: ['Skill-aware', 'Like Balanced, but skips stats that the card’s own skills already push past 99.', weightsFor(D.roles, card.position, 'auto'), skillStates(card, D.skills, D.roles, app.state.opt.freqs)],
-  };
-  // Complete / No-cap-breach: own skills + boosters (card + slot 2) + coach (DT) + condition; no teammate effects.
+// Auto build: the user's position rules only (data/roles.v1.json "autoBuild"); other points stay free.
+function auto(app, card, ctx, allBoosters) {
   const b = app.build(card);
-  const full = { condition: ctx.condition, managerLevel: ctx.managerLevel, managerBoosts: ctx.managerBoosts, boosters: allBoosters, rating: b.rating };
-  const out = {};
-  for (const [k, [name, desc, weights, states]] of Object.entries(defs)) {
-    const score = makeObjective({ ...common, weights, states });
-    const r = optimize({ prog: D.progression, budget: card.progressionPoints, score, lookahead: D.roles.optimizer.lookahead, maxSpend: maxSpendFor(D.roles, card.position) });
-    out[k] = { name, desc, allocation: r.allocation, spent: r.spent, score };
-  }
-  const fullW = weightsFor(D.roles, card.position, 'auto');
-  const fullStates = skillStates(card, D.skills, D.roles, app.state.opt.freqs);
-  const fullScore = makeObjective({ ...common, ...full, weights: fullW, states: fullStates });
-  const complete = optimize({ prog: D.progression, budget: card.progressionPoints, score: fullScore, lookahead: D.roles.optimizer.lookahead, maxSpend: maxSpendFor(D.roles, card.position) });
-  out.complete = { name: 'Complete', desc: 'Uses everything on this card: own skills, boosters, coach proficiency and boosts, condition, speed/acceleration breakpoints and the 90 passing/shooting threshold. Teammate effects (e.g. Visionary Pass) are left out.', allocation: complete.allocation, spent: complete.spent, score: fullScore, featured: true };
-  const safeScore = withNoBreach(fullScore, card, D.progression, D.mechanics, D.skills, full);
-  const safe = optimize({ prog: D.progression, budget: card.progressionPoints, score: safeScore, lookahead: D.roles.optimizer.lookahead, maxSpend: maxSpendFor(D.roles, card.position) });
-  out.nocap = { name: 'No cap breach', desc: 'Same as Complete, but no stat may go over 99 even with all its own skills active, so no point is wasted.', allocation: safe.allocation, spent: safe.spent, score: safeScore, featured: true };
-  // Points each build loses to the cap in the current context (own skills on, boosters, coach, condition).
-  for (const s of Object.values(out)) {
-    const rows = statBreakdown(card, D.progression, s.allocation, D.mechanics, D.skills, { ...ctx, active: ctx.active.filter((id) => !toggleableSkills(card, D.skills).find((t) => t.id === id)?.fromTeammate), rating: b.rating, boosters: allBoosters });
-    s.lost = Object.values(rows).reduce((n, r) => n + r.capLoss + Math.max(0, r.B - 99), 0);
-  }
-  ui.suggestKey = key;
-  ui.suggestions = { out, roles };
-  return ui.suggestions;
+  return autoBuild(card, app.D.progression, app.D.mechanics, app.D.skills, app.D.roles,
+    { condition: ctx.condition, managerLevel: ctx.managerLevel, managerBoosts: ctx.managerBoosts, boosters: allBoosters, rating: b.rating });
 }
 
 // Skill names seen on any card in the dataset (the in-game learnable list isn't published; this avoids inventing names).
@@ -127,7 +92,7 @@ export function render(root, app, opts = {}) {
   const owned = matchCardSkills(card.skills, D.skills);
   const ctx0 = cardCtx(D, card);
   const mgr = applyManager(D, ctx0);
-  const sug = card.progressionPoints ? suggestions(app, card, ctx0, combineBoosters(b.boosters, b.booster2, D.boosters)) : null;
+  const sug = card.progressionPoints ? auto(app, card, ctx0, combineBoosters(b.boosters, b.booster2, D.boosters)) : null;
   const pct = card.progressionPoints ? Math.min(100, (sum.spent / card.progressionPoints) * 100) : 0;
   const ovr = card.overall ?? card.positionRating;
 
@@ -163,12 +128,11 @@ export function render(root, app, opts = {}) {
     </div>
   </div>
 
-  ${sug ? `<div class="sugg">
-    ${Object.entries(sug.out).map(([k, s]) => `<button class="sug ${s.featured ? 'featured' : ''} ${JSON.stringify(s.allocation) === JSON.stringify(alloc) ? 'applied' : ''}" data-apply="${k}" title="${esc(s.desc)}"><b>${esc(s.name)}</b><em>${s.spent} pts · <span class="${s.lost ? 't-lost' : 'up'}">${s.lost} lost to cap</span> · apply</em></button>`).join('')}
-    <label class="f" style="min-width:160px">Role<select data-action="role">${sug.roles.map((r) => `<option ${r === ui.role ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></label>
-  </div>
-  ${(() => { const s = Object.values(sug.out).find((x) => JSON.stringify(x.allocation) === JSON.stringify(alloc)); return s ? `<p class="sugdesc"><b>${esc(s.name)}:</b> ${esc(s.desc)}</p>` : ''; })()}
-` : `<div class="notice" style="margin-top:0">No progression points for this card on eFHUB (0 / 0), so there is no build to suggest.</div>`}
+  ${!card.progressionPoints ? `<div class="notice" style="margin-top:0">No progression points for this card on eFHUB (0 / 0), so there is no build to suggest.</div>`
+    : sug ? `<div class="autob">
+    <button class="sug featured ${Object.entries(sug.allocation).every(([k, v]) => (alloc[k] ?? 0) === v) ? 'applied' : ''}" data-apply="auto"><b>★ Auto build</b><em>${sug.spent} pts · ${card.progressionPoints - sug.spent} left for you · apply</em></button>
+    <div class="autonotes">${sug.notes.map((n) => `<div title="${esc(n.rule.why)}"><b>${esc(D.progression.categories.find((c) => c.id === n.rule.category)?.label ?? n.rule.category)}</b> +${n.levels} (${n.points} pts) · ${esc(LABELS[n.rule.stat])} ${n.from} → <b class="${n.reached.length ? 'up' : 'warn-t'}">${n.value}</b>${n.reached.length ? ` ✓ ${Math.max(...n.reached)}` : ` (target ${Math.min(...n.rule.targets)} out of reach)`}</div>`).join('')}</div>
+  </div>` : `<div class="notice" style="margin-top:0">No auto-build rules for ${esc(card.position)} yet — build by hand.</div>`}
 
   <div class="grid g-plan">
     <div class="card">
@@ -221,7 +185,7 @@ export function render(root, app, opts = {}) {
   root.querySelectorAll('[data-inc]').forEach((el) => el.addEventListener('click', () => { alloc[el.dataset.inc] = (alloc[el.dataset.inc] ?? 0) + 1; app.update(); }));
   root.querySelectorAll('[data-dec]').forEach((el) => el.addEventListener('click', () => { alloc[el.dataset.dec] = Math.max(0, (alloc[el.dataset.dec] ?? 0) - 1); app.update(); }));
   root.querySelector('[data-action=reset]').addEventListener('click', () => { b.custom = emptyAllocation(prog); app.update(); });
-  root.querySelectorAll('[data-apply]').forEach((el) => el.addEventListener('click', () => { b.custom = { ...sug.out[el.dataset.apply].allocation }; app.update(); }));
+  root.querySelector('[data-apply=auto]')?.addEventListener('click', () => { b.custom = { ...sug.allocation }; app.update(); });
   root.querySelectorAll('[data-lab]').forEach((el) => el.addEventListener('click', () => { app.state.lab.selected = el.dataset.lab; }));
   root.querySelectorAll('[data-ctx]').forEach((el) => el.addEventListener('click', () => {
     const c = ui.ctx, v = el.dataset.val;
@@ -257,7 +221,6 @@ export function render(root, app, opts = {}) {
   root.querySelector('[data-action=mstyle]')?.addEventListener('change', (e) => { ui.manager.playstyle = e.target.value; app.update(); });
   root.querySelector('[data-action=mclear]')?.addEventListener('click', () => { ui.manager.id = null; app.update(); });
   root.querySelector('[data-action=prof]')?.addEventListener('change', (e) => { ui.manager.proficiency = Number(e.target.value); app.update(); });
-  root.querySelector('[data-action=role]')?.addEventListener('change', (e) => { ui.role = e.target.value; ui.suggestions = null; app.update(); });
 }
 
 // ---------- Stat breakdown (base → training → condition → manager → skills → 99 cap → boosters) ----------

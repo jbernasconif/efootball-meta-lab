@@ -9,7 +9,7 @@ import { categoryCost, totalCost } from '../src/engine/progression.js';
 import { optimize, makeObjective, weightsFor, skillStates, curveValue, curvesFrom, targetsFor } from '../src/engine/optimizer.js';
 import { importText } from '../src/data/importer.js';
 import { ATTRS } from '../src/engine/attributes.js';
-import { summarize, analyzeCategories, statBreakdown, combineBoosters, withNoBreach, capBreaches } from '../src/engine/planner.js';
+import { summarize, analyzeCategories, statBreakdown, combineBoosters, withNoBreach, capBreaches, autoBuild } from '../src/engine/planner.js';
 
 export function register(D) {
   const { skills: db, mechanics: mech, progression: prog, roles } = D;
@@ -467,5 +467,21 @@ export function register(D) {
     const card = flatCard(85, { skills: ['Through Passing'], position: 'CMF' });
     const r = statBreakdown(card, prog, {}, mech, db, { active: ['ordinary_passing'] }).lowPass;
     eq(r.actionBonus, 5); eq(r.local, 90); eq(r.extended, 85);
+  });
+  test('Auto build: forward OA 90 within 12 pts, speed 90–96 with 8–12 pts; rest left free', () => {
+    const card = flatCard(82, { position: 'CF', progressionPoints: 60 });
+    const r = autoBuild(card, prog, mech, db, roles);
+    eq(r.allocation.dexterity, 8); // 82 + 8 = 90 for 12 points
+    eq(r.allocation.lowerBody, 8); // 82 + 8 = 90, 12 points
+    eq(r.spent, 24); eq(Object.entries(r.allocation).filter(([k, v]) => v && !['dexterity', 'lowerBody'].includes(k)).length, 0);
+    const fast = autoBuild(flatCard(90, { position: 'CF', progressionPoints: 60 }), prog, mech, db, roles);
+    eq(fast.allocation.lowerBody, 6); // speed 96, not past the 96 ceiling; 8 points for stamina/kicking power
+    eq(fast.allocation.dexterity, 0); // OA already 90
+  });
+  test('Auto build: defender reaches acceleration 80 / speed 85 within 8 points; no rules for CMF', () => {
+    const r = autoBuild(flatCard(78, { position: 'CB', progressionPoints: 40 }), prog, mech, db, roles);
+    eq(r.allocation.dexterity, 2); // 78 → 80 (85 would cost 9 pts)
+    eq(r.allocation.lowerBody, 2); // 78 → 80 (85 needs 7 levels = 10 pts, over 8)
+    eq(autoBuild(flatCard(80, { position: 'CMF', progressionPoints: 40 }), prog, mech, db, roles), null);
   });
 }

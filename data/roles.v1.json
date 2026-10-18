@@ -528,5 +528,77 @@
         ]
       }
     }
+  },
+  "autoBuild": {
+    "source": "User rules, 18 Oct 2026",
+    "note": "The Auto build only spends points on these rules; the remaining points are left for the user. No trained stat may pass 99 (own skills, coach and condition included). Values are the in-game value (base + training + booster + coach).",
+    "groups": [
+      {
+        "name": "Forwards",
+        "positions": [
+          "CF",
+          "SS",
+          "LWF",
+          "RWF",
+          "AMF"
+        ],
+        "rules": [
+          {
+            "category": "dexterity",
+            "stat": "offensiveAwareness",
+            "targets": [
+              90
+            ],
+            "minPoints": 8,
+            "maxPoints": 12,
+            "skipIfReached": true,
+            "why": "Offensive Awareness 90 (it also raises acceleration on runs into space). 8–12 points."
+          },
+          {
+            "category": "lowerBody",
+            "stat": "speed",
+            "targets": [
+              90
+            ],
+            "ceiling": 96,
+            "minPoints": 8,
+            "maxPoints": 12,
+            "why": "Speed 90–96 (96–99 adds nothing). Lower Body also raises Stamina and Kicking Power. 8–12 points."
+          }
+        ]
+      },
+      {
+        "name": "Defenders",
+        "positions": [
+          "CB",
+          "LB",
+          "RB"
+        ],
+        "rules": [
+          {
+            "category": "dexterity",
+            "stat": "acceleration",
+            "targets": [
+              90,
+              85,
+              80
+            ],
+            "maxPoints": 8,
+            "why": "Acceleration 80 / 85 / 90 within 8 points (under 80 is very slow)."
+          },
+          {
+            "category": "lowerBody",
+            "stat": "speed",
+            "targets": [
+              90,
+              85,
+              80
+            ],
+            "maxPoints": 8,
+            "why": "Speed 85+ (90 ideal) within 8 points; compensates low acceleration."
+          }
+        ]
+      }
+    ]
   }
 }
