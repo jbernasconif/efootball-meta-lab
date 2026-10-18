@@ -8,8 +8,9 @@ import * as lab from './ui/lab.js';
 import * as rules from './ui/rules.js';
 import * as managers from './ui/managers.js';
 import * as tiers from './ui/tiers.js';
+import * as roster from './ui/roster.js';
 
-const PAGES = { planner, library, managers, tiers, lab, rules };
+const PAGES = { planner, roster, library, managers, tiers, lab, rules };
 const STORE_KEY = 'efml.v1';
 
 function loadStore() {
@@ -41,7 +42,7 @@ const app = {
       localStorage.setItem(STORE_KEY, JSON.stringify({
         // Only hand-imported cards are stored; demo and bundled scraper cards are reloaded from files.
         imported: s.cards.filter((c) => !['fictional', 'scraper'].includes(c.source?.method)),
-        builds: s.builds, freqs: s.opt.freqs, selectedCardId: s.selectedCardId,
+        builds: s.builds, freqs: s.opt.freqs, selectedCardId: s.selectedCardId, rosters: s.rosters,
       }));
     } catch { /* storage unavailable or full: app keeps working in memory */ }
   },
@@ -80,6 +81,7 @@ async function init() {
     cards,
     selectedCardId: cards.some((c) => c.id === saved.selectedCardId) ? saved.selectedCardId : cards[0].id,
     builds: saved.builds ?? {},
+    rosters: saved.rosters,
     scenario: defaultScenario(),
     compare: [],
     opt: { freqs: { ...app.D.roles.defaultFrequencies.values, ...(saved.freqs ?? {}) }, tactical: null, condition: 'C', managerLevel: 'none', result: null },

@@ -4,8 +4,7 @@ import { statColor } from './planner.js';
 
 const POS = { CF: 'CF', ST: 'SS', LWG: 'LWF', RWG: 'RWF', LMF: 'LMF', RMF: 'RMF', OMF: 'AMF', CMF: 'CMF', DMF: 'DMF', LSB: 'LB', RSB: 'RB', CB: 'CB', GK: 'GK' };
 const CARD = { BT: ['bigtime', 'Big Time'], EP: ['epic', 'Epic'], ST: ['showtime', 'Show Time'] };
-const TABS = { players: 'Players', formations: 'Formations', managers: 'Managers', skills: 'Skills & Link Up', builds: 'Recommended builds' };
-const CAT_IDS = ['shooting', 'passing', 'dribbling', 'dexterity', 'lowerBody', 'aerial', 'defending', 'gk1', 'gk2', 'gk3'];
+const TABS = { players: 'Players', formations: 'Formations', managers: 'Managers', skills: 'Skills & Link Up' };
 const ui = { tab: 'players', pos: 'all' };
 
 const norm = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z]/g, '');
@@ -24,21 +23,16 @@ export function render(root, app) {
   const T = app.D.tiers;
   if (T.public) return renderLinks(root, T);
   const g = T.game8;
+  if (!TABS[ui.tab]) ui.tab = 'players';
   root.innerHTML = `
   <div class="row" style="margin-bottom:12px"><h1 style="margin:0">Tier Lists</h1><span class="spacer"></span>
     <span class="muted" style="font-size:12px">game8.jp · r/Amadeusz</span></div>
   <div class="tabs">${Object.entries(TABS).map(([k, l]) => `<button class="${ui.tab === k ? 'on' : ''}" data-tab="${k}">${l}</button>`).join('')}</div>
-  ${{ players: players, formations: formations, managers: managers, skills: skills, builds: builds }[ui.tab](app, T, g)}`;
+  ${{ players: players, formations: formations, managers: managers, skills: skills }[ui.tab](app, T, g)}`;
 
   root.querySelectorAll('[data-tab]').forEach((el) => el.addEventListener('click', () => { ui.tab = el.dataset.tab; render(root, app); }));
   root.querySelectorAll('[data-pos]').forEach((el) => el.addEventListener('click', () => { ui.pos = el.dataset.pos; render(root, app); }));
   root.querySelectorAll('[data-open]').forEach((el) => el.addEventListener('click', () => { app.state.selectedCardId = el.dataset.open; app.save(); location.hash = '#/planner'; }));
-  root.querySelectorAll('[data-applybuild]').forEach((el) => el.addEventListener('click', () => {
-    const p = g.progression.players[Number(el.dataset.applybuild)];
-    const c = app.card(el.dataset.card);
-    app.build(c).custom = Object.fromEntries(CAT_IDS.map((id, i) => [id, p.alloc[i] ?? 0]));
-    app.state.selectedCardId = c.id; app.save(); location.hash = '#/planner';
-  }));
 }
 
 // Public build: the tier lists belong to their authors, so the site links to them instead of copying them.
@@ -85,10 +79,27 @@ function formations(app, T, g) {
     <div class="row"><h2 style="margin:0">Formations · game8</h2><span class="spacer"></span>${src(g.formations[0]?.source_url, g.formations[0]?.page_date)}</div>
     ${tiers.map((t) => `<div class="tierline"><span class="tier ${tierClass(t)}">${esc(t.replace('Tier', 'Tier '))}</span>
       <div class="flist">${g.formations.filter((f) => f.tier === t).map((f) => `<div class="fcard">
+        ${formationSVG(app.D.formations, f.formation)}
         <b class="mono">${esc(f.formation)}</b>
         <div class="row" style="gap:4px;margin:4px 0">${(f.teamStyles ?? []).map((s) => `<span class="chip mgrchip">${esc(s)}</span>`).join('')}</div>
         <div class="muted" style="font-size:12px">${esc(f.why ?? '')}</div></div>`).join('')}</div></div>`).join('')}
   </div>`;
+}
+
+// Formation drawn on a vertical pitch from data/formations.v1.json (own replica of the layout, not game8's image).
+const fkey = (s) => String(s).toLowerCase().replace(/[^a-z0-9+-]/g, '');
+const LINE = { GK: 'gk', CB: 'def', LB: 'def', RB: 'def', DMF: 'mid', CMF: 'mid', LMF: 'mid', RMF: 'mid', AMF: 'mid', SS: 'att', CF: 'att', LWF: 'att', RWF: 'att' };
+export function formationSVG(F, name) {
+  const layout = Object.entries(F?.layouts ?? {}).find(([k]) => fkey(k) === fkey(name))?.[1];
+  if (!layout) return '';
+  const Y = (y) => 128 - y * 1.2; // own goal at the bottom
+  return `<svg class="fpitch" viewBox="0 0 100 134" role="img" aria-label="${esc(name)} formation">
+    <rect x="1" y="1" width="98" height="132" rx="2" class="pl"/>
+    <line x1="1" y1="67" x2="99" y2="67" class="pl"/><circle cx="50" cy="67" r="9" class="pl"/>
+    <rect x="25" y="1" width="50" height="16" class="pl"/><rect x="38" y="1" width="24" height="6" class="pl"/>
+    <rect x="25" y="117" width="50" height="16" class="pl"/><rect x="38" y="127" width="24" height="6" class="pl"/>
+    ${layout.map(([pos, x, y]) => `<g class="fp ${LINE[pos] ?? 'mid'}"><circle cx="${x}" cy="${Y(y)}" r="5.2"/><text x="${x}" y="${Y(y) + 1.6}">${pos}</text></g>`).join('')}
+  </svg>`;
 }
 
 function managers(app, T, g) {
@@ -108,16 +119,3 @@ function skills(app, T) {
   </div>`).join('');
 }
 
-function builds(app, T, g) {
-  const p = g.progression;
-  const labels = ['SHO', 'PAS', 'DRI', 'DEX', 'LBS', 'AER', 'DEF', 'GK1', 'GK2', 'GK3'];
-  return `<div class="card"><div class="row"><h2 style="margin:0">Recommended builds · game8</h2></div>
-    <div class="xscroll"><table><thead><tr><th>Player</th><th>Card</th>${labels.map((l) => `<th class="n">${l}</th>`).join('')}<th class="n">Pts</th><th></th></tr></thead>
-    <tbody>${p.players.map((r, i) => {
-      const c = findCard(app, r.nameEn, r.card);
-      return `<tr><td><b>${esc(r.nameEn)}</b> <span class="muted">${esc(r.pos ?? '')}</span></td><td><span class="ctype ${CARD[r.card]?.[0] ?? ''}">${esc(r.card)}</span></td>
-        ${labels.map((_, k) => `<td class="n ${r.alloc[k] ? '' : 'dim'}">${r.alloc[k] || '·'}</td>`).join('')}
-        <td class="n">${r.tp ?? ''}</td>
-        <td>${c ? `<button class="small" data-applybuild="${i}" data-card="${esc(c.id)}">Apply</button>` : '<span class="muted" style="font-size:11px">not in dataset</span>'} ${src(r.source_url)}</td></tr>`;
-    }).join('')}</tbody></table></div></div>`;
-}

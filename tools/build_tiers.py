@@ -72,8 +72,6 @@ for f in g8.get("formations", [])[:1]:
 mg = g8.get("managers", {})
 if mg.get("source_url"):
     pages.setdefault(mg["source_url"], {"title": "Manager ranking", "url": mg["source_url"], "date": mg.get("page_date")})
-for p in g8.get("progression", {}).get("players", []):
-    pages.setdefault(p["source_url"], {"title": f"Build guide · {p['nameEn']}", "url": p["source_url"], "date": p.get("page_date")})
 public = {
     "schema": "efml.tiers", "version": data["version"], "public": True,
     "note": "Public build: tier lists are linked, not copied. Run tools/build_tiers.py locally for the full in-app version.",

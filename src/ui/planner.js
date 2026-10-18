@@ -5,7 +5,7 @@ import { PLAYSTYLES } from './managers.js';
 import { summarize, skillBoosts, maxBoost, statBreakdown, toggleableSkills, combineBoosters, withNoBreach, capBreaches, communityEffectsFor } from '../engine/planner.js';
 import { emptyAllocation } from '../engine/progression.js';
 import { matchCardSkills } from '../engine/skills.js';
-import { weightsFor, skillStates, makeObjective, optimize, curvesFrom } from '../engine/optimizer.js';
+import { weightsFor, skillStates, makeObjective, optimize, curvesFrom, curveValue } from '../engine/optimizer.js';
 
 const ui = { q: '', mq: '', suggestFor: null, suggestions: null, role: null, manager: { id: null, playstyle: 'quickCounter', proficiency: 70 } };
 
@@ -102,6 +102,7 @@ export function render(root, app) {
   const card = withExtraSkills(baseCard, b);
   const alloc = b.custom;
   const sum = summarize(card, prog, alloc, D.skills);
+  const curves = curvesFrom(D.breakpoints);
   const boosts = skillBoosts(card, D.skills);
   const owned = matchCardSkills(card.skills, D.skills);
   const ctx0 = cardCtx(D, card);
@@ -153,8 +154,8 @@ export function render(root, app) {
       ${managerBox(D, mgr)}
       <h2 style="margin-top:16px">Spend points</h2>
       ${sum.rows.map((r) => `
-        <div class="cat2 ${r.status}" title="${esc(tipText(r, sum.left))}">
-          <span class="st">${r.status === 'capped' ? '⛔' : r.status === 'clipped' ? '⚠' : ''}</span>
+        <div class="cat2 ${r.status}" title="${esc([tipText(r, sum.left), dimText(r, curves)].filter(Boolean).join(' · '))}">
+          <span class="st">${r.status === 'capped' ? '⛔' : r.status === 'clipped' ? '⚠' : dimText(r, curves) ? '<span class="dimico">&#8600;</span>' : ''}</span>
           <b>${esc(r.label)}</b>
           <button class="step" data-dec="${r.id}" ${r.level ? '' : 'disabled'} aria-label="Remove a level">−</button>
           <span class="lv">${r.level}</span>
@@ -336,15 +337,16 @@ function breakdownCard(app, card, b, alloc) {
     <div class="legend2">${SRC.map(([k, l, t]) => `<span title="${esc(t)}"><i class="dot2 s-${k}"></i>${l}</span>`).join('')}<span><i class="capmark"></i>99 cap</span></div>
 
     <div class="xscroll"><table class="bk">
-      <thead><tr><th>Stat</th><th class="n">Base</th><th class="n t-prog">Train</th><th class="n t-cond">Cond</th><th class="n t-mgr">Mgr</th><th class="n t-skill">Skill</th><th class="n t-boost">Boost</th><th class="n">Final</th><th style="width:38%"></th></tr></thead>
-      <tbody>${Object.entries(GROUPS).map(([g, attrs]) => `<tr class="grp"><td colspan="9">${g}</td></tr>${attrs.map((a) => {
+      <thead><tr><th>Stat</th><th class="n">Base</th><th class="n t-prog">Train</th><th class="n t-cond">Cond</th><th class="n t-mgr">Mgr</th><th class="n t-skill" title="In-match stat bonus while the skill is active (goes through the 99 cap)">Skill</th><th class="n t-act" title="Bonus for one action only: ⚡ article skills (not capped), ◇ community-measured skills (capped at 99)">Action</th><th class="n t-boost">Boost</th><th class="n">Final</th><th style="width:38%"></th></tr></thead>
+      <tbody>${Object.entries(GROUPS).map(([g, attrs]) => `<tr class="grp"><td colspan="10">${g}</td></tr>${attrs.map((a) => {
         const r = rows[a];
         const lost = r.capLoss + Math.max(0, r.B - 99);
         return `<tr class="${lost ? 'has-lost' : ''}">
           <td>${LABELS[a]}${lost ? ` <span class="lostchip" title="${lost} points above 99 are discarded">−${lost}</span>` : ''}${bpChip(r, bpsByStat[a])}</td>
           <td class="n">${r.A}</td>
           ${cell(r.prog, 'prog', 'Training')}${cell(r.cond, r.cond < 0 ? 'neg' : 'cond', 'Condition arrow')}${cell(r.mgr, 'mgr', `Proficiency +${r.mgrProf}${r.mgrBoost ? ` · manager boost +${r.mgrBoost}` : ''}`)}
-          ${r.skill || r.actionBonus || r.community.length ? `<td class="n t-skill" title="${esc([...r.sources, ...(r.actionBonus ? [`${r.actionSource} +${r.actionBonus} (action bonus, not capped)`] : [])].join(', '))}">${r.skill ? `+${r.skill}` : ''}${r.actionBonus ? `<span class="zapv">⚡+${r.actionBonus}</span>` : ''}${r.community.map((c) => `<span class="commv" title="${esc(`${c.skill} ${c.label} on ${c.action} (community)`)}">&#9671;${esc(c.label)}</span>`).join('')}</td>` : '<td class="n dim">·</td>'}
+          ${r.skill ? `<td class="n t-skill" title="${esc(r.sources.join(', '))}">+${r.skill}</td>` : '<td class="n dim">·</td>'}
+          ${r.actionBonus || r.community.length ? `<td class="n act" title="${esc([...(r.actionBonus ? [`${r.actionSource} +${r.actionBonus} on special motions (not capped)`] : []), ...r.community.map((c) => `${c.skill} ${c.label} on ${c.action} (community, capped at 99)`)].join(' · '))}">${r.actionBonus ? `<span class="zapv">⚡+${r.actionBonus}</span>` : ''}${r.community.map((c) => `<span class="commv">&#9671;${esc(c.label)}</span>`).join('')}</td>` : '<td class="n dim">·</td>'}
           ${cell(r.boost, 'boost', `Booster: ${boosterNames.join(', ')} (applied after the 99 cap)`)}
           <td class="n"><b class="final ${statColor(r.extended)} ${r.ordinary >= 99 ? 'is-max' : ''}">${r.extended}</b>${r.actionBonus ? `<span class="actv" title="Value on that action with ${esc(r.actionSource)}">→${r.local}</span>` : ''}${r.community[0] && r.community[0].value > r.extended ? `<span class="actv commv" title="${esc(`${r.community[0].action} with ${r.community[0].skill}`)}">→${r.community[0].value}</span>` : ''}</td>
           <td>${bar(r, bpsByStat[a])}</td></tr>`;
@@ -370,6 +372,16 @@ function skillRow(D, card, sum, id) {
     ${local ? '<span class="zap">⚡</span>' : ''}<b>${esc(s.name)}</b>${clip}
     <span class="spacer"></span><span class="muted">${esc(s.magnitude.split(';')[0])}</span>
     <a href="#/lab" data-lab="${s.id}" title="Skills Lab">↗</a></div>`;
+}
+
+// Next level of this category lands in a diminishing-returns zone (e.g. Speed above 90): what each point is worth.
+function dimText(r, curves) {
+  const parts = [];
+  for (const s of r.stats) {
+    const seg = (curves[s.attr] ?? []).filter((b) => s.now + 1 > b.at).pop();
+    if (seg && s.now < 99) parts.push(`${s.label} next point ≈${seg.valueFactor.toFixed(2)} (above ${seg.at})`);
+  }
+  return parts.join(', ');
 }
 
 function tipText(r, left) {
@@ -423,9 +435,15 @@ function physicsCard(card) {
 // Community breakpoint chip: the next threshold within 3 points, or "↘" once past a diminishing-returns line.
 function bpChip(r, bps = []) {
   const v = r.extended;
+  let out = '';
+  // Past a diminishing-returns line: how many raw points are "lost" vs their full value (Amadeusz curve).
+  const curve = bps.filter((b) => b.valueFactor).sort((a, b) => a.at - b.at);
+  const past = curve.filter((b) => v > b.at).pop();
+  if (past) {
+    const loss = v - curveValue(v, curve);
+    out += ` <span class="bpchip dim" title="${esc(`${v} counts as ≈${(v - loss).toFixed(1)}: ${curve.map((b) => `above ${b.at} each point ≈${b.valueFactor.toFixed(2)}`).join('; ')} (community, ${past.confidence})`)}">&#8600; −${loss.toFixed(1)} eff.</span>`;
+  }
   const next = bps.filter((b) => b.at > v && b.at - v <= 3).sort((a, b) => a.at - b.at)[0];
-  if (next) return ` <span class="bpchip" title="${esc(`${next.label}: ${next.effect} (community, ${next.confidence})`)}">&#9670;${next.at} ${esc(next.label)}</span>`;
-  const past = bps.filter((b) => b.valueFactor && v > b.at).sort((a, b) => b.at - a.at)[0];
-  if (past) return ` <span class="bpchip dim" title="${esc(`${past.label}: ${past.effect} (community, ${past.confidence})`)}">&#8600; past ${past.at}</span>`;
-  return '';
+  if (next) out += ` <span class="bpchip" title="${esc(`${next.label}: ${next.effect} (community, ${next.confidence})`)}">&#9670;${next.at} ${esc(next.label)}</span>`;
+  return out;
 }
