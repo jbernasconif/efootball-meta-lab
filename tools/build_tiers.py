@@ -61,7 +61,7 @@ data = {
     },
     "amadeusz": amadeusz,
 }
-out = ROOT / "data" / "tiers.v1.json"  # full version: local use only (git-ignored)
+out = ROOT / "lab" / "data" / "tiers.v1.json"  # full version: local use only (git-ignored)
 out.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
 
 # Public version (committed to GitHub Pages): links to the sources only, no copied rankings or images.
@@ -81,7 +81,7 @@ public = {
         {"site": "r/Amadeusz", "items": [{"title": l["title"], "url": l["url"], "date": l.get("date")} for l in amadeusz["lists"]]},
     ],
 }
-(ROOT / "data" / "tiers.public.json").write_text(json.dumps(public, ensure_ascii=False, indent=1), encoding="utf-8")
+(ROOT / "lab" / "data" / "tiers.public.json").write_text(json.dumps(public, ensure_ascii=False, indent=1), encoding="utf-8")
 print("players", len(g8.get("players_top10", [])), "formations", len(g8.get("formations", [])), "keys", list(g8.keys()))
 print("sample player", g8["players_top10"][0])
 print("sample formation", g8["formations"][0])

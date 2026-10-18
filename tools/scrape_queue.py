@@ -23,7 +23,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "out"
-DATA = ROOT / "data"
+DATA = ROOT / "lab" / "data"  # Meta Lab site lives in lab/
 PY = sys.executable
 CARD_TYPES = ["epic", "bigtime", "showtime", "legend", "featured", "trending", "highlight", "normal"]
 # URL lists already collected by v1 runs (avoid re-walking the listings).

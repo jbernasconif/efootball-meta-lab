@@ -1,7 +1,9 @@
 # Minimal static file server for eFootball Meta Lab (no Node/Python required).
-# Usage: powershell -ExecutionPolicy Bypass -File serve.ps1 [-Port 5173]
-param([int]$Port = 5173)
+# Usage: powershell -ExecutionPolicy Bypass -File serve.ps1 [-Port 5173] [-Dir site]
+#   default root = repo (Meta Lab at /lab/); -Dir site serves the combined build from tools/build_site.py
+param([int]$Port = 5173, [string]$Dir = '')
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
+if ($Dir) { $root = [System.IO.Path]::GetFullPath((Join-Path $root $Dir)) }  # PowerShell vars are case-insensitive: not $Root
 $listener = [System.Net.HttpListener]::new()
 $listener.Prefixes.Add("http://localhost:$Port/")
 $listener.Start()

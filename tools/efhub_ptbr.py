@@ -46,7 +46,7 @@ JS_TEXTS = """() => {
 
 
 def pick_cards(max_cards: int) -> list[dict]:
-    rows = list(csv.DictReader((ROOT / "data" / "cards.efhub.csv").open(encoding="utf-8-sig")))
+    rows = list(csv.DictReader((ROOT / "lab" / "data" / "cards.efhub.csv").open(encoding="utf-8-sig")))
     rows = [r for r in rows if r.get("boostersSeparated") == "1"]
     feats = lambda r: {*(f"s:{s}" for s in (r["skills"] + "|" + r.get("additionalSkills", "")).split("|") if s),
                        *(f"c:{s}" for s in r.get("comSkills", "").split("|") if s),

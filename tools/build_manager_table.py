@@ -66,7 +66,7 @@ def main() -> None:
         "articleCheck89": "ok" if not mismatches else f"mismatch at {mismatches}",
         "firstProficiency": first,
     }
-    out = Path(__file__).resolve().parent.parent / "data" / "manager-proficiency.v1.json"
+    out = Path(__file__).resolve().parent.parent / "lab" / "data" / "manager-proficiency.v1.json"
     out.write_text(json.dumps(data, indent=1), encoding="utf-8")
     print("written", out, "| article check 89:", data["articleCheck89"])
 

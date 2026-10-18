@@ -7,8 +7,14 @@ __pycache__/
 research/
 
 # Third-party editorial content: kept local, linked in the public build
-data/tiers.v1.json
-data/img/
+lab/data/tiers.v1.json
+lab/data/img/
 
 # Local tooling
 .claude/
+
+# League app (Vite) build output and dependencies
+league/node_modules/
+league/dist/
+dist/
+site/

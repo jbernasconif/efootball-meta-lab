@@ -30,7 +30,7 @@ def empty_ids() -> dict[str, str]:
 
     Rows only in old v1 files are skipped: the scrape queue re-scrapes those types with the fixed parser.
     """
-    with (ROOT / "data" / "cards.efhub.csv").open(encoding="utf-8-sig", newline="") as fh:
+    with (ROOT / "lab" / "data" / "cards.efhub.csv").open(encoding="utf-8-sig", newline="") as fh:
         return {r["id"]: r["sourceUrl"] for r in csv.DictReader(fh)
                 if r.get("id", "").startswith("efhub-") and r.get("sourceUrl") and not (r.get("skills") or "").strip()}
 
