@@ -7,6 +7,7 @@ export const DATA_FILES = {
   boosters: 'data/boosters.v1.json',
   managerProficiency: 'data/manager-proficiency.v1.json',
   breakpoints: 'data/breakpoints.v1.json',
+  skillClaims: 'data/skill-claims.v1.json',
   formations: 'data/formations.v1.json',
   sampleCards: 'data/cards.sample.json',
 };

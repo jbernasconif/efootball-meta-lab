@@ -17,7 +17,7 @@ function cardCtx(D, card) {
   return (ui.ctxByCard[card.id] ??= {
     condition: 'C', opponents: 2, managerId: null, playstyle: 'quickCounter', proficiency: 70,
     active: [...withoutConflicts(toggleableSkills(card, D.skills).filter((t) => !t.fromTeammate).map((t) => t.id)),
-      ...communityEffectsFor(card, D.breakpoints).map((e) => `comm:${e.skill}`)],
+      ...communityEffectsFor(card, D.breakpoints, D.skillClaims).map((e) => `comm:${e.skill}`)],
   });
 }
 
@@ -219,7 +219,7 @@ export function render(root, app, opts = {}) {
     const c = cardCtx(D, withExtraSkills(baseCard, b));
     const now = withExtraSkills(baseCard, b);
     const ids = [...toggleableSkills(now, D.skills).filter((t) => !t.fromTeammate && t.id && now.skills.some((s) => s.toLowerCase() === t.name.toLowerCase() || (t.id === 'ordinary_heading' && s === 'Heading'))).map((t) => t.id),
-      ...communityEffectsFor(now, D.breakpoints).map((e) => `comm:${e.skill}`)];
+      ...communityEffectsFor(now, D.breakpoints, D.skillClaims).map((e) => `comm:${e.skill}`)];
     for (const id of ids) if (!c.active.includes(id)) c.active = toggleSkill(c.active, id);
     app.update();
   }));
@@ -294,10 +294,13 @@ function breakdownCard(app, card, b, alloc) {
   const { D } = app;
   const toggles = toggleableSkills(card, D.skills);
   const ctx = cardCtx(D, card);
-  const commFx = communityEffectsFor(card, D.breakpoints);
+  const commFx = communityEffectsFor(card, D.breakpoints, D.skillClaims);
   ui.ctx = ctx;
   ctx.active = ctx.active.filter((id) => toggles.some((t) => t.id === id) || commFx.some((e) => id === `comm:${e.skill}`));
-  // Slot 1 = the card's own booster(s). Slot 2 = selectable +1 booster when the card's second slot is empty (as on eFHUB).
+  // % upgrade of an action bonus over the Final value (info only).
+const pctUp = (bonus, base) => (base ? Math.round((bonus / base) * 1000) / 10 : 0);
+
+// Slot 1 = the card's own booster(s). Slot 2 = selectable +1 booster when the card's second slot is empty (as on eFHUB).
   const cardNames = card.boosterNames?.length ? card.boosterNames : Object.entries(b.boosters ?? {}).filter(([, v]) => v).map(([a, v]) => `${LABELS[a]} +${v}`);
   const slot2Free = cardNames.length < 2;
   if (!slot2Free) b.booster2 = null;
@@ -333,7 +336,7 @@ function breakdownCard(app, card, b, alloc) {
         </select>` : ''}</div></div>
       ${toggles.length ? `<div style="flex:1 1 100%"><label>Skills active in this moment</label><div class="pills">${toggles.map((t) =>
         pill('skill', t.id, ctx.active.includes(t.id), `${t.fromTeammate ? '<span class="tm">teammate</span>' : ''}${t.kind === 'local' ? '<span class="zap">⚡</span>' : ''}${esc(t.name)}`, `${t.kind === 'local' ? 'Action bonus · ' : ''}When: ${t.when}`)).join('')}
-        ${commFx.map((e) => pill('skill', `comm:${e.skill}`, ctx.active.includes(`comm:${e.skill}`), `<span class="comm">&#9671;</span>${esc(e.skill)}`, `Community: ${e.flat ? `+${e.flat}` : `+${e.pct}%`} on ${e.action}, capped at 99`)).join('')}
+        ${[...new Set(commFx.map((e) => e.skill))].map((name) => pill('skill', `comm:${name}`, ctx.active.includes(`comm:${name}`), `<span class="comm">&#9671;</span>${esc(name)}`, commFx.filter((e) => e.skill === name).map((e) => `${e.by}: ${e.flat ? `+${e.flat}` : `+${e.pct}%`} on ${e.action}${e.cap ? ', capped at 99' : ''}`).join(' · ') + ' — shown as % upgrade, not added to Final')).join('')}
         ${toggles.some((t) => t.id === 'magnetic_feet') && ctx.active.includes('magnetic_feet') ? `<span class="opp">Opponents within 5 m <input type="range" min="1" max="4" value="${ctx.opponents}" data-action="opp"> <b>${ctx.opponents}</b></span>` : ''}</div></div>` : ''}
     </div>
 
@@ -341,7 +344,7 @@ function breakdownCard(app, card, b, alloc) {
     <div class="legend2">${SRC.map(([k, l, t]) => `<span title="${esc(t)}"><i class="dot2 s-${k}"></i>${l}</span>`).join('')}<span><i class="capmark"></i>99 cap</span></div>
 
     <div class="xscroll"><table class="bk">
-      <thead><tr><th>Stat</th><th class="n">Base</th><th class="n t-prog">Train</th><th class="n t-boost">Boost</th><th class="n t-mgr">Mgr</th><th class="n ingame" title="What the game shows: base + training + booster + manager">In-game</th><th class="n t-cond">Cond</th><th class="n t-skill" title="In-match stat bonus while the skill is active (goes through the 99 cap)">Skill</th><th class="n t-act" title="Bonus for one action only: ⚡ article skills (not capped), ◇ community-measured skills (capped at 99)">Action</th><th class="n">Final</th><th style="width:34%"></th></tr></thead>
+      <thead><tr><th>Stat</th><th class="n">Base</th><th class="n t-prog">Train</th><th class="n t-boost">Boost</th><th class="n t-mgr">Mgr</th><th class="n ingame" title="What the game shows: base + training + booster + manager">In-game</th><th class="n t-cond">Cond</th><th class="n t-skill" title="In-match stat bonus while the skill is active (goes through the 99 cap)">Skill</th><th class="n t-act" title="% upgrade for one action only — ⚡ article skills, ◇ community (r/Amadeusz, disassembly slides). Not included in Final or the optimizer.">Action %</th><th class="n">Final</th><th style="width:34%"></th></tr></thead>
       <tbody>${Object.entries(GROUPS).map(([g, attrs]) => `<tr class="grp"><td colspan="11">${g}</td></tr>${attrs.map((a) => {
         const r = rows[a];
         const lost = r.capLoss + Math.max(0, r.B - 99);
@@ -354,8 +357,8 @@ function breakdownCard(app, card, b, alloc) {
           <td class="n ingame"><b class="${statColor(r.ingame)}">${r.ingame}</b></td>
           ${cell(r.cond, r.cond < 0 ? 'neg' : 'cond', 'Condition arrow')}
           ${r.skill ? `<td class="n t-skill" title="${esc(r.sources.join(', '))}">+${r.skill}</td>` : '<td class="n dim">·</td>'}
-          ${r.actionBonus || r.community.length ? `<td class="n act" title="${esc([...(r.actionBonus ? [`${r.actionSource} +${r.actionBonus} on special motions (not capped)`] : []), ...r.community.map((c) => `${c.skill} ${c.label} on ${c.action} (community, capped at 99)`)].join(' · '))}">${r.actionBonus ? `<span class="zapv">⚡+${r.actionBonus}</span>` : ''}${r.community.map((c) => `<span class="commv">&#9671;${esc(c.label)}</span>`).join('')}</td>` : '<td class="n dim">·</td>'}
-          <td class="n"><b class="final ${statColor(r.extended)} ${r.ordinary >= 99 ? 'is-max' : ''}">${r.extended}</b>${r.actionBonus ? `<span class="actv" title="Value on that action with ${esc(r.actionSource)}">→${r.local}</span>` : ''}${r.community[0] && r.community[0].value > r.extended ? `<span class="actv commv" title="${esc(`${r.community[0].action} with ${r.community[0].skill}`)}">→${r.community[0].value}</span>` : ''}</td>
+          ${r.actionBonus || r.community.length ? `<td class="n act" title="${esc([...(r.actionBonus ? [`${r.actionSource} +${r.actionBonus} on special motions → ${r.local} (article, not capped)`] : []), ...r.community.map((c) => `${c.skill} ${c.label} on ${c.action} → ${c.value} (${c.by}${c.cap ? ', capped at 99' : ''})`)].join(' · '))} · Not included in Final">${r.actionBonus ? `<span class="zapv">⚡+${pctUp(r.actionBonus, r.extended)}%</span>` : ''}${r.community.map((c) => `<span class="commv">&#9671;+${c.pct}%</span>`).join('')}</td>` : '<td class="n dim">·</td>'}
+          <td class="n"><b class="final ${statColor(r.extended)} ${r.ordinary >= 99 ? 'is-max' : ''}">${r.extended}</b></td>
           <td>${bar(r, bpsByStat[a])}</td></tr>`;
       }).join('')}`).join('')}</tbody>
     </table></div>

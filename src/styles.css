@@ -263,3 +263,9 @@ table.bk tr.has-lost td:first-child { box-shadow: inset 3px 0 0 var(--src-lost);
 td.ingame b { font-size: 14px; }
 .sugdesc { margin: -4px 0 12px; font-size: 12.5px; color: var(--muted, #9aa4b2); }
 .sugdesc b { color: var(--text, #e6e9ef); }
+/* Skills Lab: community disassembly claims */
+.claimbox { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line, #2a3140); border-radius: 10px; background: color-mix(in srgb, var(--accent, #4da3ff) 5%, transparent); }
+.claim { margin-top: 8px; font-size: 13px; padding: 8px 10px; border-radius: 8px; }
+.claim span { display: block; font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 2px; font-weight: 600; }
+.claim.hyp { background: color-mix(in srgb, #ffd166 8%, transparent); } .claim.hyp span { color: #e0b44c; }
+.claim.code { background: color-mix(in srgb, #2ec4a6 10%, transparent); } .claim.code span { color: #2ec4a6; }

@@ -102,6 +102,7 @@ export function render(root, app) {
           </div>
         </div>
         ${sk.uncertainties.length ? `<div class="notice"><b>Uncertainties:</b> ${esc(sk.uncertainties.join(' · '))}</div>` : ''}
+        ${claimBox(D, sk.id)}
         <h3>Activation conditions (data)</h3>
         ${checksList(evaluate(sk.activation, res.facts).checks)}
       </div>
@@ -128,6 +129,8 @@ export function render(root, app) {
         </div>
       </div>
 
+      ${claimsCard(D)}
+
       <div class="grid g2">
         <div class="card">
           <h2>Compatibility and combinations</h2>
@@ -152,6 +155,33 @@ export function render(root, app) {
   root.querySelectorAll('[data-skill]').forEach((el) => el.addEventListener('click', () => { L.selected = el.dataset.skill; app.update(); }));
   bindScenario(root, app, s);
   bindPitch(root, app, s);
+}
+
+// Community disassembly slides (data/skill-claims.v1.json): popular belief vs code finding, next to the article.
+const CHECK = { agrees: ['b-ok', 'Agrees with article'], partly: ['b-warn', 'Partly agrees'], differs: ['b-warn', 'Differs from engine'], conflict: ['b-warn', 'Conflicts'], new: ['', 'Not in article'] };
+const checkBadge = (c) => `<span class="badge ${CHECK[c]?.[0] ?? ''}">${CHECK[c]?.[1] ?? esc(c)}</span>`;
+const claimHtml = (c) => `${c.hypothesis ? `<div class="claim hyp"><span>Popular belief</span>“${esc(c.hypothesis)}”</div>` : ''}
+  <div class="claim code"><span>Code finding</span>${esc(c.finding)}</div>
+  ${c.vsCommunity ? `<div class="muted" style="font-size:12px">${esc(c.vsCommunity)}</div>` : ''}`;
+
+function claimBox(D, id) {
+  const c = D.skillClaims?.skills?.find((x) => x.id === id);
+  if (!c) return '';
+  return `<div class="claimbox"><div class="row"><h3 style="margin:0">Disassembly claim</h3><span class="badge mono">${esc(c.slideId)}</span>${checkBadge(c.check)}<span class="spacer"></span>
+    <span class="muted" style="font-size:11px">community · unverified</span></div>${claimHtml(c)}</div>`;
+}
+
+function claimsCard(D) {
+  const C = D.skillClaims;
+  if (!C) return '';
+  return `<div class="card">
+    <h2>Community disassembly · other skills and engine rules</h2>
+    <p class="muted" style="font-size:12px">${esc(C.source.title)} · ${esc(C.source.target)} · researcher ${esc(C.source.researcher)}. ${esc(C.source.note)}</p>
+    <div class="grid g2">${C.otherSkills.map((c) => `<div class="claimbox"><div class="row"><b>${esc(c.name)}</b><span class="badge mono">${esc(c.slideId)}</span>${checkBadge(c.check)}</div>${claimHtml(c)}</div>`).join('')}</div>
+    <h3>Engine pipeline</h3>
+    <div class="muted" style="font-size:12px;margin-bottom:6px">${C.pipeline.stages.map((s, i) => `${i + 1}. ${esc(s)}`).join(' → ')}</div>
+    ${C.pipeline.claims.map((c) => `<div style="font-size:13px;margin-bottom:6px">${checkBadge(c.check)} <b>${esc(c.topic)}:</b> ${esc(c.claim)} <span class="muted">${esc(c.vsEngine)}</span></div>`).join('')}
+  </div>`;
 }
 
 function nameOf(D, id) {

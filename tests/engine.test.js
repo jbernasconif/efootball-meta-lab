@@ -9,7 +9,7 @@ import { categoryCost, totalCost } from '../src/engine/progression.js';
 import { optimize, makeObjective, weightsFor, skillStates, curveValue, curvesFrom } from '../src/engine/optimizer.js';
 import { importText } from '../src/data/importer.js';
 import { ATTRS } from '../src/engine/attributes.js';
-import { summarize, analyzeCategories, statBreakdown, combineBoosters, withNoBreach, capBreaches } from '../src/engine/planner.js';
+import { summarize, analyzeCategories, statBreakdown, combineBoosters, withNoBreach, capBreaches, communityEffectsFor } from '../src/engine/planner.js';
 
 export function register(D) {
   const { skills: db, mechanics: mech, progression: prog, roles } = D;
@@ -439,5 +439,15 @@ export function register(D) {
     const card = flatCard(97, { progressionPoints: 40 });
     const s = summarize(card, prog, { passing: 4 }, db); // 97→99 after 2 levels; levels 3–4 wasted (1+1)
     eq(s.wastedPoints, 2); eq(s.wastedStats, 4);
+  });
+  test('Community action effects: shown as % upgrade, never added to Final', () => {
+    const card = flatCard(85, { skills: ['Through Passing'], position: 'CMF' });
+    const fx = communityEffectsFor(card, D.breakpoints, D.skillClaims);
+    eq(fx.length, 2); // r/Amadeusz +20% (cap 99) and disassembly slides +5 (local)
+    const r = statBreakdown(card, prog, {}, mech, db, { community: fx }).lowPass;
+    eq(r.extended, 85);
+    const am = r.community.find((c) => c.by === 'r/Amadeusz'), sl = r.community.find((c) => c.by === 'disassembly slides');
+    eq(am.value, 99); eq(am.gain, 14); close(am.pct, 16.5, 0.05);
+    eq(sl.value, 90); close(sl.pct, 5.9, 0.05);
   });
 }
