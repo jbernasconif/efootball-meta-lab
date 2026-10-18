@@ -68,3 +68,15 @@ En `localStorage` del navegador, bajo claves `kikudes:shared:*`. `src/storage.js
 el `window.storage` del artefacto. Si algún día quieres un backend real (varios usuarios con
 los mismos datos), ese archivo es el único que cambia. Mientras tanto, **Datos → Descargar**
 es tu copia de seguridad: hazla de vez en cuando.
+
+## 7. Publicar lo que cargas a mano (sitio en GitHub)
+
+1. En la app (local o en el sitio): **Datos → Descargar**. Queda `corner-kikudes-AAAA-MM-DD.json`
+   en Descargas.
+2. Doble clic en **`Publicar liga.cmd`** (raíz del repo). Toma el export más nuevo de Descargas,
+   le quita el PIN de admin (el sitio es público), lo copia a `league/public/data.json`, hace
+   commit y push.
+3. GitHub Actions recompila el sitio en ~2 minutos. Cada navegador fusiona el archivo nuevo en su
+   próxima visita (una vez por export, según su fecha `saved`).
+
+Sin push: `python tools/publish_league.py` (sólo copia y muestra el resumen).

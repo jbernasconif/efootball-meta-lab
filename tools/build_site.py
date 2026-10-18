@@ -17,9 +17,10 @@ def main() -> None:
     if not (dist / "index.html").exists():
         raise SystemExit("league/dist is missing: run `npm run build` in league/ first")
     if SITE.exists():
-        shutil.rmtree(SITE)
-    shutil.copytree(dist, SITE)
-    shutil.copytree(ROOT / "lab", SITE / "lab", ignore=shutil.ignore_patterns("tests", "*.tmp"))
+        # OneDrive or the local server can lock folders on Windows: then overwrite in place.
+        shutil.rmtree(SITE, ignore_errors=True)
+    shutil.copytree(dist, SITE, dirs_exist_ok=True)
+    shutil.copytree(ROOT / "lab", SITE / "lab", ignore=shutil.ignore_patterns("tests", "*.tmp"), dirs_exist_ok=True)
     (SITE / ".nojekyll").write_text("", encoding="utf-8")
     n = sum(1 for p in SITE.rglob("*") if p.is_file())
     print(f"site/ ready: {n} files (league at /, Meta Lab at /lab/)")
