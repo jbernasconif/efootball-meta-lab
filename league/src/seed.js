@@ -48,17 +48,31 @@ export async function seedFromFile() {
   dropPlaceholderTeams();
 }
 
-// Quien abrió el sitio antes de que hubiera data.json recibió 13 equipos vacíos ("Team 1"…,
-// creados por emptyTeam en App.jsx). Al llegar los clubes reales se sumaban (26 clubes).
-// Si conviven con equipos reales, los vacíos sin tocar se quitan.
+// Quien abrió el sitio antes de que hubiera data.json recibió 13 equipos por defecto (emptyTeam en
+// App.jsx, que luego pueden tomar los nombres reales). Al llegar los clubes reales se sumaban (26).
+// Se quitan: los "Team N" vacíos, y de dos clubes con el mismo nombre, el que ningún otro dato usa
+// (torneos, liga, draft, traspasos guardan el id del club).
 function dropPlaceholderTeams() {
   const key = P + "shared:teams-data";
   try {
     const teams = JSON.parse(localStorage.getItem(key) || "null");
     if (!Array.isArray(teams)) return;
+    let refs = "";
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k.startsWith(P + "shared:") && k !== key && !k.includes("backup")) refs += localStorage.getItem(k) || "";
+    }
+    const used = (t) => !!t?.id && refs.includes(t.id);
     const blank = (t) => /^Team \d+$/.test(t?.name || "") && !t.captain && !t.crest && !t.bio && !t.history
       && !t.tagline && !t.founded && !(t.trophies || []).length;
-    const real = teams.filter((t) => !blank(t));
-    if (real.length && real.length < teams.length) localStorage.setItem(key, JSON.stringify(real));
+    const byName = {};
+    teams.forEach((t) => { (byName[t?.name] ||= []).push(t); });
+    const keep = teams.filter((t) => {
+      if (used(t)) return true;
+      if (blank(t)) return false;
+      const twins = byName[t?.name] || [];
+      return !(twins.length > 1 && twins.some((o) => o !== t && used(o)));
+    });
+    if (keep.length && keep.length < teams.length) localStorage.setItem(key, JSON.stringify(keep));
   } catch (e) { /* datos ilegibles: no tocar */ }
 }
