@@ -981,50 +981,52 @@ function DataTransfer({ onClose, unlocked }) {
 const ZOOM_KEY = "ui-zoom";
 const ZOOM_STEPS = [0.7, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
 
-// Música: la playlist de la liga con el reproductor oficial de Spotify (iFrame API). Los navegadores
-// no dejan sonar nada antes de que la persona toque la página, así que arranca desde la primera
-// canción, en el segundo 0, con el PRIMER clic o tecla en cualquier parte. El botón verde sólo
-// muestra u oculta el reproductor (80 px); oculto sigue sonando. Igual que lab/src/music.js.
+// Música: la playlist de la liga con el reproductor oficial de Spotify (iFrame API). Es optativa:
+// no suena hasta que alguien aprieta el botón verde; ese primer clic arranca la playlist desde la
+// primera canción y abre el reproductor (80 px). Después el botón sólo lo muestra u oculta (oculto
+// sigue sonando) y se pausa desde el propio reproductor. Igual que lab/src/music.js.
 const SPOTIFY_URI = "spotify:playlist:2CYStprraqqZVkvGTV4Xx2";
 function MusicPlayer() {
   const [open, setOpen] = useState(false);
   const [playing, setPlaying] = useState(false);
   const holder = useRef(null);
+  const ctl = useRef({ controller: null, started: false, pending: false });
+  const start = () => {
+    const s = ctl.current;
+    if (s.started) return;
+    if (!s.controller) { s.pending = true; return; }   // el reproductor aún carga: arranca al estar listo
+    s.started = true;
+    s.controller.loadUri(SPOTIFY_URI);   // primera canción de la playlist
+    s.controller.play();
+    s.controller.seek(0);
+  };
   useEffect(() => {
-    let controller = null, started = false;
-    const events = ["pointerdown", "keydown"];
-    const off = () => events.forEach((e) => window.removeEventListener(e, firstTouch, true));
-    function firstTouch() {
-      if (started || !controller) return;
-      started = true;
-      controller.loadUri(SPOTIFY_URI);   // vuelve a la primera canción
-      controller.play();
-      controller.seek(0);
-      off();
-    }
-    events.forEach((e) => window.addEventListener(e, firstTouch, true));
     window.onSpotifyIframeApiReady = (api) => {
       if (!holder.current) return;
       // Spotify reemplaza el elemento por su iframe: se le da uno propio, no el que maneja React.
       const el = document.createElement("div");
       holder.current.appendChild(el);
       api.createController(el, { uri: SPOTIFY_URI, width: "100%", height: 80 }, (c) => {
-        controller = c;
+        ctl.current.controller = c;
         c.addListener("playback_update", (e) => setPlaying(!e.data.isPaused));
-        if (navigator.userActivation?.hasBeenActive) firstTouch();
+        if (ctl.current.pending) start();
       });
     };
     const s = document.createElement("script");
     s.src = "https://open.spotify.com/embed/iframe-api/v1";
     s.async = true;
     document.head.appendChild(s);
-    return off;
   }, []);
+  const onButton = () => {
+    if (!ctl.current.started) { start(); setOpen(true); return; }
+    setOpen(!open);
+  };
   return (
     <div className={`ck-music${open ? " open" : ""}${playing ? " playing" : ""}`}>
       <div className="ck-music-panel"><div ref={holder} /></div>
-      <button onClick={() => setOpen(!open)} className="ck-music-btn"
-              title={open ? "Ocultar reproductor (la música sigue)" : "Música de la liga"} aria-label="Música">
+      <button onClick={onButton} className="ck-music-btn"
+              title={!ctl.current.started ? "Poner la música de la liga" : open ? "Ocultar reproductor (la música sigue)" : "Mostrar reproductor"}
+              aria-label="Música">
         <Music2 size={18} />
       </button>
     </div>
