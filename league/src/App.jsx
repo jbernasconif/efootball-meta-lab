@@ -644,8 +644,49 @@ function mergeStoredValue(key, mineRaw, theirsRaw) {
   }
 }
 
-function DataTransfer({ onClose }) {
+// ============ Publicar desde el sitio (GitHub) ============
+// El sitio publicado no puede escribir en la computadora, así que publica directo en GitHub con un
+// token que crea el dueño (sólo este repositorio, permiso Contents: Read and write). El token se
+// guarda únicamente en este navegador (storage "mine", fuera de los exports) y nunca se sube.
+// Se sube league/public/data.json sin el PIN de admin; GitHub Actions recompila el sitio.
+const GH_REPO = "jbernasconif/efootball-meta-lab";
+const GH_PATH = "league/public/data.json";
+const GH_TOKEN_KEY = "gh-publish-token";
+const b64encode = (str) => {
+  const bytes = new TextEncoder().encode(str);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+};
+const b64decode = (b64) => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\s/g, "")), (c) => c.charCodeAt(0)));
+
+async function publishToGitHub(token, dumpText) {
+  const payload = JSON.parse(dumpText);
+  Object.keys(payload.data || {}).forEach((k) => { if (k.endsWith("admin-pin")) delete payload.data[k]; });
+  const headers = { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
+  const url = `https://api.github.com/repos/${GH_REPO}/contents/${GH_PATH}`;
+  const cur = await fetch(`${url}?ref=main`, { headers, cache: "no-store" });
+  if (cur.status === 401 || cur.status === 403) throw Object.assign(new Error("El token no es válido o no tiene permiso sobre el repositorio."), { badToken: true });
+  if (!cur.ok) throw new Error(`GitHub respondió ${cur.status} al leer los datos publicados.`);
+  const info = await cur.json();
+  let published = null;
+  try { published = JSON.parse(b64decode(info.content || "")).saved || null; } catch (e) { /* archivo grande o ilegible */ }
+  if (published && payload.saved && payload.saved < published) {
+    throw new Error(`Lo publicado (${published.slice(0, 16)}) es más nuevo que lo de este navegador. No se publicó para no pisarlo.`);
+  }
+  const put = await fetch(url, {
+    method: "PUT", headers,
+    body: JSON.stringify({ message: `League data ${String(payload.saved || "").slice(0, 16)} (desde el sitio)`,
+                           content: b64encode(JSON.stringify(payload)), sha: info.sha, branch: "main" }),
+  });
+  if (put.status === 401 || put.status === 403) throw Object.assign(new Error("El token no tiene permiso de escritura (Contents: Read and write)."), { badToken: true });
+  if (!put.ok) throw new Error(`GitHub respondió ${put.status} al publicar. Probá de nuevo.`);
+}
+
+function DataTransfer({ onClose, unlocked }) {
   const [dump, setDump] = useState("");
+  const [ghToken, setGhToken] = useState(null);      // null = cargando, "" = sin token
+  const [tokenInput, setTokenInput] = useState("");
   const [paste, setPaste] = useState("");
   const [busy, setBusy] = useState(true);
   const [msg, setMsg] = useState("");
@@ -704,6 +745,23 @@ function DataTransfer({ onClose }) {
 
   // Sólo en local (npm run dev / "Abrir liga local.cmd"): el servidor de Vite escribe el export en
   // league/public/data.json (sin PIN) y, si se pide, hace commit y push (vite.config.js → saveLeaguePlugin).
+  useEffect(() => { loadKey(GH_TOKEN_KEY, "", false).then((v) => setGhToken(v || "")); }, []);
+
+  async function publishSite(token) {
+    setBusy(true);
+    setMsg("Publicando en el sitio…");
+    try {
+      await publishToGitHub(token, dump);
+      if (token !== ghToken) { await saveKey(GH_TOKEN_KEY, token, false); setGhToken(token); setTokenInput(""); }
+      setMsg("Publicado. El sitio se actualiza en unos 2 minutos (Ctrl+F5 si no lo ves).");
+    } catch (e) {
+      if (e.badToken) { await saveKey(GH_TOKEN_KEY, "", false); setGhToken(""); }
+      setMsg(e.message || "No se pudo publicar.");
+    }
+    setBusy(false);
+  }
+  async function forgetToken() { await saveKey(GH_TOKEN_KEY, "", false); setGhToken(""); setMsg("Token borrado de este navegador."); }
+
   async function saveToProject(publish) {
     setBusy(true);
     setMsg(publish ? "Saving and publishing…" : "Saving to the project…");
@@ -772,6 +830,46 @@ function DataTransfer({ onClose }) {
               Everything: clubs, tournaments, archive, league, draft. Load it into the shareable HTML file with its
               Import button, or back into this app below.
             </p>
+            {/* Publicar en el sitio desde cualquier navegador (también el publicado): sólo con EDIT. */}
+            <div style={{ borderColor: TOKENS.line, background: TOKENS.bg }} className="border rounded p-3 mb-3">
+              <div style={{ ...headingStyle, fontSize: "0.68rem", color: TOKENS.accent }} className="mb-1">Publicar en el sitio</div>
+              {!unlocked ? (
+                <p style={{ color: TOKENS.muted }} className="text-xs">Desbloqueá con EDIT (tu PIN) para publicar lo que cargaste.</p>
+              ) : ghToken === null ? (
+                <p style={{ color: TOKENS.muted }} className="text-xs">…</p>
+              ) : ghToken ? (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button onClick={() => publishSite(ghToken)} disabled={busy}
+                          style={{ background: busy ? TOKENS.line : TOKENS.accent, color: busy ? TOKENS.ink : TOKENS.onGold }}
+                          className="text-xs font-bold uppercase tracking-wide px-3 py-2 rounded">
+                    Publicar
+                  </button>
+                  <span style={{ color: TOKENS.muted }} className="text-xs">sube los datos de este navegador, sin el PIN</span>
+                  <button onClick={forgetToken} style={{ color: TOKENS.muted }} className="text-xs underline ml-auto">olvidar token</button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p style={{ color: TOKENS.muted }} className="text-xs">
+                    Primera vez en este navegador: pegá un token de GitHub.{" "}
+                    <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener"
+                       style={{ color: TOKENS.cyan }} className="underline">Crearlo acá</a>{" "}
+                    — Repository access: <b>Only select repositories → efootball-meta-lab</b>; Permissions → Repository →
+                    <b> Contents: Read and write</b>. Queda guardado sólo en este navegador.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <input type="password" value={tokenInput} onChange={(e) => setTokenInput(e.target.value.trim())}
+                           placeholder="github_pat_…" autoComplete="off" style={field}
+                           className="flex-1 border rounded px-2 py-1.5 text-xs outline-none" />
+                    <button onClick={() => publishSite(tokenInput)} disabled={busy || tokenInput.length < 20}
+                            style={{ background: busy || tokenInput.length < 20 ? TOKENS.line : TOKENS.accent,
+                                     color: busy || tokenInput.length < 20 ? TOKENS.ink : TOKENS.onGold }}
+                            className="text-xs font-bold uppercase tracking-wide px-3 py-2 rounded">
+                      Guardar token y publicar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
             {import.meta.env.DEV && (
               <div className="flex items-center gap-2 flex-wrap mb-3">
                 <button onClick={() => saveToProject(false)} disabled={busy}
@@ -1246,7 +1344,7 @@ export default function LeagueApp() {
         <Check size={13} /> Saved
       </div>
 
-      {showData && <DataTransfer onClose={() => setShowData(false)} />}
+      {showData && <DataTransfer onClose={() => setShowData(false)} unlocked={unlocked} />}
 
       {/* PIN modal */}
       {pinPrompt && (
