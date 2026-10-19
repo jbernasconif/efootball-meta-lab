@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>eFootball Meta Lab</title>
-    <meta name="build" content="04beac90a6">
+    <meta name="build" content="b2ecc4742c">
   <script type="importmap">{
   "imports": {
     "./src/app.js": "./src/app.js?v=a0c0bb8fe2",
@@ -29,22 +29,27 @@
     "./src/ui/tiers.js": "./src/ui/tiers.js?v=b4b33faa80"
   }
 }</script>
-  <link rel="stylesheet" href="src/styles.css?v=4f672bbcaf">
+  <link rel="stylesheet" href="src/styles.css?v=a4dede5149">
 </head>
 <body>
-  <div class="app">
-    <nav class="side" id="nav">
-      <div class="brand">eFootball Meta Lab<small>Rules v1 · eFHUB article 17 Oct 2026</small></div>
-      <a href="../" class="back">← Corner Kikudes</a>
-      <a href="#/planner" data-route="planner">Build Planner</a>
-      <a href="#/library" data-route="library">Players</a>
-      <a href="#/managers" data-route="managers">Managers</a>
-      <a href="#/tiers" data-route="tiers">Tier Lists</a>
-      <a href="#/lab" data-route="lab">Skills Lab</a>
-      <a href="#/rules" data-route="rules">Rules &amp; Evidence</a>
-    </nav>
-    <main id="root"><p class="muted">Loading data…</p></main>
-  </div>
+  <!-- Mismo esquema que la liga: banner entero arriba y barra de secciones fija con íconos.
+       La primera pestaña vuelve a la liga (Corner Kikudes) con su propio distintivo. -->
+  <header class="lab-banner">
+    <div class="lab-banner-blur" aria-hidden="true"></div>
+    <img src="assets/banner-metalab.webp" alt="Meta Lab · Optimización de builds · Corner Kikudes" width="2000" height="667">
+  </header>
+  <nav class="lab-nav" id="nav">
+    <div class="lab-tabs">
+      <a href="../" class="lab-tab league-tab" title="Volver a la liga Corner Kikudes"><span class="league-trophy"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.7V17c0 .6-.5 1-1 1.2C7.9 18.8 7 20.2 7 22M14 14.7V17c0 .6.5 1 1 1.2 1.1.6 2 2 2 3.8M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg></span><span>Corner Kikudes</span></a>
+      <a href="#/planner" data-route="planner" class="lab-tab"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg><span>Build Planner</span></a>
+      <a href="#/library" data-route="library" class="lab-tab"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><span>Players</span></a>
+      <a href="#/managers" data-route="managers" class="lab-tab"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg><span>Managers</span></a>
+      <a href="#/tiers" data-route="tiers" class="lab-tab"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 6h11M10 12h11M10 18h11M4 6h1v4M4 10h2M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg><span>Tier Lists</span></a>
+      <a href="#/lab" data-route="lab" class="lab-tab"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2v7.3L4.2 19.1A2 2 0 0 0 6 22h12a2 2 0 0 0 1.8-2.9L14 9.3V2M8.5 2h7M7 16h10"/></svg><span>Skills Lab</span></a>
+      <a href="#/rules" data-route="rules" class="lab-tab"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg><span>Rules &amp; Evidence</span></a>
+    </div>
+  </nav>
+  <main id="root"><p class="muted">Loading data…</p></main>
   <script type="module" src="src/app.js?v=a0c0bb8fe2"></script>
 </body>
 </html>
