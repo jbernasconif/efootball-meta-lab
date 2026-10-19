@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { Trophy, Star, Users, Calendar, Plus, X, Pencil, Shield, Lock, Check, ChevronLeft, Unlock, Save } from "lucide-react";
+import { Trophy, Star, Users, Calendar, Plus, X, Pencil, Shield, Lock, Check, ChevronLeft, Unlock, Save, FlaskConical } from "lucide-react";
 
 // Misma línea visual que Meta Lab (tema oscuro). `ink` es el texto sobre fondo oscuro;
 // `onGold` el texto sobre botones de color (dorado, turquesa); `night`/`bar` fondos oscuros.
@@ -437,6 +437,24 @@ const FONT_IMPORTS = (
     @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
     /* Los cuatro cuadros del Inicio en una fila. CSS propio porque el Tailwind precompilado
        del artefacto no trae todas las variantes responsive y md:grid-cols-4 no aplicaba. */
+    /* Pestaña Meta Lab: borde con degradado que gira, matraz con burbujas que suben al pasar el mouse. */
+    @property --ml-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+    .metalab-tab { position: relative; display: inline-flex; align-items: center; gap: 6px;
+      background: linear-gradient(#0B0F14, #0B0F14) padding-box,
+        conic-gradient(from var(--ml-angle), #36C2A2, #4F8CFF, #B48CFF, #E3B341, #36C2A2) border-box !important;
+      border: 1.5px solid transparent !important; color: #FFFFFF !important;
+      box-shadow: 0 0 14px rgba(54, 194, 162, 0.35) !important; animation: ml-spin 4s linear infinite; }
+    .metalab-tab:hover { box-shadow: 0 0 22px rgba(79, 140, 255, 0.6) !important; transform: translateY(-1px); }
+    @keyframes ml-spin { to { --ml-angle: 360deg; } }
+    .metalab-flask { position: relative; display: inline-flex; color: #36C2A2; }
+    .metalab-flask i { position: absolute; left: 50%; bottom: 9px; width: 3px; height: 3px; border-radius: 50%;
+      background: #36C2A2; opacity: 0; }
+    .metalab-tab:hover .metalab-flask i { animation: ml-bubble 1.1s ease-out infinite; }
+    .metalab-tab:hover .metalab-flask i:nth-child(3) { animation-delay: .35s; margin-left: -3px; background: #4F8CFF; }
+    .metalab-tab:hover .metalab-flask i:nth-child(4) { animation-delay: .7s; margin-left: 2px; background: #E3B341; }
+    @keyframes ml-bubble { 0% { opacity: 0; transform: translateY(0) scale(.6); } 30% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(-12px) scale(1.2); } }
+    @media (prefers-reduced-motion: reduce) { .metalab-tab, .metalab-tab:hover .metalab-flask i { animation: none; } }
     .home-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-items: stretch; }
     @media (min-width: 768px) { .home-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
     /* Tablero del draft: una tarjeta por club, tantas columnas como quepan; nunca scroll lateral. */
@@ -1147,6 +1165,11 @@ export default function LeagueApp() {
             {[
               { label: "Inicio", key: "home", live: true },
               { label: "Equipos", key: "teams", live: true },
+              // Meta Lab (build planner, jugadores de eFHUB, skills) vive en el mismo sitio, en ./lab/:
+              // tercera pestaña, con su propio estilo (.metalab-tab). En local (npm run dev) ./lab/
+              // no existe, así que se abre el Meta Lab publicado.
+              { label: "Meta Lab", key: "metalab", live: true, special: true,
+                href: import.meta.env.DEV ? "https://jbernasconif.github.io/efootball-meta-lab/lab/" : "./lab/" },
               { label: "Torneo", key: "tournament", live: true },
               { label: "Liga", key: "league", live: true },
               { label: "Temporadas", key: "seasons", live: true },
@@ -1154,10 +1177,6 @@ export default function LeagueApp() {
               { label: "Ranking", key: "ranking", live: true },
               { label: "Jugadores", key: "players", live: true },
               { label: "Reglas", key: "rules", live: true },
-              // Meta Lab (build planner, jugadores de eFHUB, skills) vive en el mismo sitio, en ./lab/.
-              // En local (npm run dev) ./lab/ no existe: se abre el Meta Lab publicado.
-              { label: "Meta Lab ↗", key: "metalab", live: true,
-                href: import.meta.env.DEV ? "https://jbernasconif.github.io/efootball-meta-lab/lab/" : "./lab/" },
             ].map((tab) => {
               const active = page === tab.key;
               return (
@@ -1175,10 +1194,16 @@ export default function LeagueApp() {
                     boxShadow: "0 1px 3px rgba(0,0,0,0.35)",
                     cursor: tab.live ? "pointer" : "default",
                   }}
-                  className="px-3 py-2 rounded-sm shrink-0 whitespace-nowrap"
-                  title={tab.live ? "" : "Próximamente"}
+                  className={`px-3 py-2 rounded-sm shrink-0 whitespace-nowrap${tab.special ? " metalab-tab" : ""}`}
+                  title={tab.special ? "Build planner, jugadores de eFHUB y skills" : tab.live ? "" : "Próximamente"}
                 >
-                  {tab.label}{!tab.live ? " · pronto" : ""}
+                  {tab.special && (
+                    <span className="metalab-flask" aria-hidden="true">
+                      <FlaskConical size={13} />
+                      <i /><i /><i />
+                    </span>
+                  )}
+                  {tab.label}{tab.special ? " ↗" : ""}{!tab.live ? " · pronto" : ""}
                 </button>
               );
             })}
