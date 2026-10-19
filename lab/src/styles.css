@@ -315,3 +315,21 @@ main { max-width: 1400px; margin: 0 auto; }
 @keyframes lg-wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-14deg) scale(1.15); } 75% { transform: rotate(14deg) scale(1.15); } }
 @media (prefers-reduced-motion: reduce) { .lab-tab.league-tab, .lab-tab.league-tab:hover .league-trophy { animation: none; } }
 @media (max-width: 640px) { .lab-tab { padding: 13px 9px 11px; } main { padding: 18px 14px 50px; } }
+
+/* Botón flotante de música (Spotify), igual que en la liga. El reproductor (80 px) siempre está
+   cargado para poder sonar; cerrado sólo se oculta. Mientras suena, el botón late. */
+.ck-music { position: fixed; right: 16px; bottom: 16px; z-index: 60; }
+.ck-music-panel { position: absolute; right: 0; bottom: 58px; width: min(300px, calc(100vw - 32px)); border-radius: 14px;
+  padding: 4px; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 12px 40px rgba(0,0,0,.55);
+  opacity: 0; transform: translateY(8px); pointer-events: none; transition: opacity .2s, transform .2s; }
+.ck-music.open .ck-music-panel { opacity: 1; transform: none; pointer-events: auto; }
+.ck-music-embed, .ck-music-embed iframe { display: block; border-radius: 10px; }
+.ck-music-btn { width: 44px; height: 44px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  color: #fff; background: linear-gradient(135deg, #1DB954, #36C2A2); border: none; cursor: pointer;
+  box-shadow: 0 0 0 4px rgba(29,185,84,.18), 0 8px 24px rgba(0,0,0,.5); transition: transform .15s; }
+.ck-music-btn:hover { transform: scale(1.08); }
+.ck-music.open .ck-music-btn { background: var(--panel); color: #1DB954; box-shadow: 0 0 0 2px #1DB954, 0 8px 24px rgba(0,0,0,.5); }
+.ck-music.playing .ck-music-btn { animation: ck-beat 1.2s ease-in-out infinite; }
+@keyframes ck-beat { 0%, 100% { box-shadow: 0 0 0 4px rgba(29,185,84,.18), 0 8px 24px rgba(0,0,0,.5); }
+  50% { box-shadow: 0 0 0 9px rgba(29,185,84,.28), 0 8px 24px rgba(0,0,0,.5); } }
+@media (prefers-reduced-motion: reduce) { .ck-music.playing .ck-music-btn { animation: none; } }

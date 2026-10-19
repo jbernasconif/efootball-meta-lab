@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { Trophy, Star, Users, Calendar, Plus, X, Pencil, Shield, Lock, Check, ChevronLeft, Unlock, Save, FlaskConical, Home, Trophy as TrophyIcon, ListOrdered, CalendarRange, BarChart3, TrendingUp, BookOpen, Database } from "lucide-react";
+import { Trophy, Star, Users, Calendar, Plus, X, Pencil, Shield, Lock, Check, ChevronLeft, Unlock, Save, FlaskConical, Home, Trophy as TrophyIcon, ListOrdered, CalendarRange, BarChart3, TrendingUp, BookOpen, Database, Music2, Search } from "lucide-react";
 
 // Misma línea visual que Meta Lab (tema oscuro). `ink` es el texto sobre fondo oscuro;
 // `onGold` el texto sobre botones de color (dorado, turquesa); `night`/`bar` fondos oscuros.
@@ -475,6 +475,22 @@ const FONT_IMPORTS = (
     .ck-tool:hover { border-color: #36C2A2; }
     .ck-tool.on { background: #E3B341; border-color: #E3B341; color: #06231C; }
     @media (max-width: 640px) { .ck-tool .lbl, .ck-zoom { display: none; } .ck-tab { padding: 13px 10px 11px; } }
+    /* Botón flotante de música (Spotify): reproductor de 80 px siempre cargado; cerrado sólo se oculta. */
+    .ck-music { position: fixed; right: 16px; bottom: 16px; z-index: 60; }
+    .ck-music-panel { position: absolute; right: 0; bottom: 58px; width: min(300px, calc(100vw - 32px)); border-radius: 14px;
+      padding: 4px; background: #121821; border: 1px solid #243040; box-shadow: 0 12px 40px rgba(0,0,0,.55);
+      opacity: 0; transform: translateY(8px); pointer-events: none; transition: opacity .2s, transform .2s; }
+    .ck-music.open .ck-music-panel { opacity: 1; transform: none; pointer-events: auto; }
+    .ck-music-panel iframe { display: block; border-radius: 10px; }
+    .ck-music-btn { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      color: #fff; background: linear-gradient(135deg, #1DB954, #36C2A2); border: none; cursor: pointer;
+      box-shadow: 0 0 0 4px rgba(29,185,84,.18), 0 8px 24px rgba(0,0,0,.5); transition: transform .15s; }
+    .ck-music-btn:hover { transform: scale(1.08); }
+    .ck-music.open .ck-music-btn { background: #121821; color: #1DB954; box-shadow: 0 0 0 2px #1DB954, 0 8px 24px rgba(0,0,0,.5); }
+    .ck-music.playing .ck-music-btn { animation: ck-beat 1.2s ease-in-out infinite; }
+    @keyframes ck-beat { 0%, 100% { box-shadow: 0 0 0 4px rgba(29,185,84,.18), 0 8px 24px rgba(0,0,0,.5); }
+      50% { box-shadow: 0 0 0 9px rgba(29,185,84,.28), 0 8px 24px rgba(0,0,0,.5); } }
+    @media (prefers-reduced-motion: reduce) { .ck-music.playing .ck-music-btn { animation: none; } }
     .home-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-items: stretch; }
     @media (min-width: 768px) { .home-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
     /* Tablero del draft: una tarjeta por club, tantas columnas como quepan; nunca scroll lateral. */
@@ -867,6 +883,56 @@ function DataTransfer({ onClose }) {
 const ZOOM_KEY = "ui-zoom";
 const ZOOM_STEPS = [0.7, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
 
+// Música: la playlist de la liga con el reproductor oficial de Spotify (iFrame API). Los navegadores
+// no dejan sonar nada antes de que la persona toque la página, así que arranca desde la primera
+// canción, en el segundo 0, con el PRIMER clic o tecla en cualquier parte. El botón verde sólo
+// muestra u oculta el reproductor (80 px); oculto sigue sonando. Igual que lab/src/music.js.
+const SPOTIFY_URI = "spotify:playlist:2CYStprraqqZVkvGTV4Xx2";
+function MusicPlayer() {
+  const [open, setOpen] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const holder = useRef(null);
+  useEffect(() => {
+    let controller = null, started = false;
+    const events = ["pointerdown", "keydown"];
+    const off = () => events.forEach((e) => window.removeEventListener(e, firstTouch, true));
+    function firstTouch() {
+      if (started || !controller) return;
+      started = true;
+      controller.loadUri(SPOTIFY_URI);   // vuelve a la primera canción
+      controller.play();
+      controller.seek(0);
+      off();
+    }
+    events.forEach((e) => window.addEventListener(e, firstTouch, true));
+    window.onSpotifyIframeApiReady = (api) => {
+      if (!holder.current) return;
+      // Spotify reemplaza el elemento por su iframe: se le da uno propio, no el que maneja React.
+      const el = document.createElement("div");
+      holder.current.appendChild(el);
+      api.createController(el, { uri: SPOTIFY_URI, width: "100%", height: 80 }, (c) => {
+        controller = c;
+        c.addListener("playback_update", (e) => setPlaying(!e.data.isPaused));
+        if (navigator.userActivation?.hasBeenActive) firstTouch();
+      });
+    };
+    const s = document.createElement("script");
+    s.src = "https://open.spotify.com/embed/iframe-api/v1";
+    s.async = true;
+    document.head.appendChild(s);
+    return off;
+  }, []);
+  return (
+    <div className={`ck-music${open ? " open" : ""}${playing ? " playing" : ""}`}>
+      <div className="ck-music-panel"><div ref={holder} /></div>
+      <button onClick={() => setOpen(!open)} className="ck-music-btn"
+              title={open ? "Ocultar reproductor (la música sigue)" : "Música de la liga"} aria-label="Música">
+        <Music2 size={18} />
+      </button>
+    </div>
+  );
+}
+
 function ZoomControl({ zoom, setZoom }) {
   const i = ZOOM_STEPS.indexOf(zoom);
   const idx = i === -1 ? ZOOM_STEPS.indexOf(1) : i;
@@ -1162,6 +1228,8 @@ export default function LeagueApp() {
           </div>
         </div>
       </nav>
+
+      <MusicPlayer />
 
       {/* Save flash */}
       <div
@@ -7199,6 +7267,7 @@ function LeagueRosters({ teams, unlocked, draft: draftProp, trades: tradesProp, 
   const [draft, setDraft] = useState(draftProp ?? null);
   const [trades, setTrades] = useState(tradesProp ?? null);
   const [compact, setCompact] = useState(false);
+  const [q, setQ] = useState("");   // buscador de jugadores o clubes
 
   useEffect(() => {
     if (draftProp !== undefined && tradesProp !== undefined) return;   // vienen de una liga archivada
@@ -7232,6 +7301,15 @@ function LeagueRosters({ teams, unlocked, draft: draftProp, trades: tradesProp, 
   const picks = draft.picks || {};
   const franchise = draft.franchise || {};
 
+  // Buscador: sin acentos ni mayúsculas. Filtra los clubes (por nombre del club o de un jugador)
+  // y resalta a los jugadores que coinciden.
+  const fold = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+  const needle = fold(q);
+  const squads = Object.fromEntries(order.map((name) => [name, squadAfterTrades(draft, name, activeTrades)]));
+  const hits = needle ? order.flatMap((name) => squads[name].squad.slice(0, LEAGUE_ROSTER_SIZE)
+    .filter((p) => fold(p).includes(needle)).map((p) => ({ name, p }))) : [];
+  const shown = needle ? order.filter((name) => fold(name).includes(needle) || hits.some((h) => h.name === name)) : order;
+
   return (
     <div>
       <div style={{ background: TOKENS.surface, borderColor: TOKENS.line }} className="border rounded-sm p-5 mb-4">
@@ -7245,23 +7323,46 @@ function LeagueRosters({ teams, unlocked, draft: draftProp, trades: tradesProp, 
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-3">
+      <div className="flex flex-wrap items-center gap-2 mb-3">
         <FilterPill active={!compact} onClick={() => setCompact(false)}>Detallado</FilterPill>
         <FilterPill active={compact} onClick={() => setCompact(true)}>Compacto · para compartir</FilterPill>
+        <label className="flex items-center gap-2 border rounded-sm px-2.5 py-1.5 flex-1"
+               style={{ borderColor: needle ? TOKENS.accent : TOKENS.line, background: TOKENS.bg, minWidth: 220, maxWidth: 420 }}>
+          <Search size={14} style={{ color: TOKENS.muted }} />
+          <input value={q} onChange={(e) => { setQ(e.target.value); if (e.target.value) setCompact(false); }}
+                 placeholder="Buscar jugador o club…" className="flex-1 bg-transparent outline-none text-sm"
+                 style={{ color: TOKENS.ink }} aria-label="Buscar jugador o club" />
+          {q && <button onClick={() => setQ("")} title="Limpiar" style={{ color: TOKENS.muted }}><X size={14} /></button>}
+        </label>
       </div>
+
+      {needle && (
+        <div className="text-sm mb-3" style={{ color: TOKENS.muted }}>
+          {hits.length === 0 && shown.length === 0 ? "Nadie con ese nombre en los planteles."
+            : hits.length === 0 ? `${shown.length} club${shown.length === 1 ? "" : "es"}.`
+            : <>
+                {hits.length} jugador{hits.length === 1 ? "" : "es"}:{" "}
+                {hits.slice(0, 12).map((h, i) => (
+                  <span key={i}>{i ? " · " : ""}<b style={{ color: TOKENS.ink }}>{h.p}</b> <span style={{ color: TOKENS.accent }}>({h.name})</span></span>
+                ))}
+                {hits.length > 12 ? " …" : ""}
+              </>}
+        </div>
+      )}
 
       {compact ? (
         <CompactRosters draft={draft} trades={activeTrades} clubs={order} teams={teams} />
       ) : (
         <>
-          <UnknownPositions draft={draft} trades={activeTrades} clubs={order} teams={teams} />
+          {/* mientras se busca, sólo los planteles: los avisos vuelven al borrar la búsqueda */}
+          {!needle && <UnknownPositions draft={draft} trades={activeTrades} clubs={order} teams={teams} />}
 
-          <RosterHealth draft={draft} trades={activeTrades} clubs={order}
-                        teams={teams} unlocked={unlocked} onRelease={release} />
+          {!needle && <RosterHealth draft={draft} trades={activeTrades} clubs={order}
+                        teams={teams} unlocked={unlocked} onRelease={release} />}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {order.map((name) => {
-              const { squad, incoming, outgoing } = squadAfterTrades(draft, name, activeTrades);
+            {shown.map((name) => {
+              const { squad, incoming, outgoing } = squads[name];
               const inSet = new Set(incoming.map((x) => x.trim().toLowerCase()));
               const fp = (draft?.franchise?.[name] || "").trim();
               return (
@@ -7311,7 +7412,9 @@ function LeagueRosters({ teams, unlocked, draft: draftProp, trades: tradesProp, 
                               <span style={{ color: TOKENS.muted }} className="w-4 shrink-0 text-right">{i + 1}</span>
                               <PosTag pos={positionOf(p)} size="sm" />
                               <span className="truncate flex-1"
-                                    style={isIn ? { color: "#1E7A46", fontWeight: 700 } : undefined}>{p}</span>
+                                    style={{ ...(isIn ? { color: "#1E7A46", fontWeight: 700 } : {}),
+                                             ...(needle && fold(p).includes(needle)
+                                               ? { background: "rgba(54,194,162,0.22)", color: "#FFFFFF", fontWeight: 700, borderRadius: 3, padding: "0 4px" } : {}) }}>{p}</span>
                               {isIn && <span style={{ color: "#1E7A46", fontSize: "0.5rem" }} className="shrink-0">IN</span>}
                               {p === fp && (
                                 <span style={{ ...headingStyle, color: TOKENS.gold, fontSize: "0.5rem" }}

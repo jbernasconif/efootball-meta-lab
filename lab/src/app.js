@@ -6,6 +6,7 @@ import * as planner from './ui/planner.js';
 import * as library from './ui/library.js';
 import * as lab from './ui/lab.js';
 import * as rules from './ui/rules.js';
+import { mountMusic } from './music.js';
 import * as managers from './ui/managers.js';
 import * as tiers from './ui/tiers.js';
 // import * as roster from './ui/roster.js'; // hidden
@@ -149,4 +150,5 @@ async function init() {
 }
 
 window.__app = app;
+mountMusic();
 init();
