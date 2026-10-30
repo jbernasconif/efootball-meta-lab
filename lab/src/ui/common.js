@@ -3,6 +3,8 @@ import { ACTIONS, countNearbyOpponents, inBox } from '../engine/scenario.js';
 import { POSITIONS } from '../engine/attributes.js';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// Search text without accents or case: "kovac" finds "Niko Kovač", "vinicius" finds "Vinícius".
+export const fold = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[đĐ]/g, 'd').replace(/[łŁ]/g, 'l').replace(/ø/gi, 'o').toLowerCase();
 export const fmt = (v, d = 2) => (typeof v === 'number' ? (Number.isInteger(v) ? String(v) : v.toFixed(d)) : esc(v));
 export const signed = (v) => (v > 0 ? `+${fmt(v)}` : v < 0 ? fmt(v) : '0');
 

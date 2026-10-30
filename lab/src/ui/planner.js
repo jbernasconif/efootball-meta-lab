@@ -1,5 +1,5 @@
 // Build Planner: the main, simplified page. Pick a card, spend points, see where points stop paying off.
-import { esc, statusBadge } from './common.js';
+import { esc, statusBadge, fold } from './common.js';
 import { GROUPS, LABELS, normalizeAttrKey } from '../engine/attributes.js';
 import { PLAYSTYLES } from './managers.js';
 import { summarize, skillBoosts, maxBoost, statBreakdown, toggleableSkills, combineBoosters, autoBuild } from '../engine/planner.js';
@@ -170,9 +170,9 @@ export function render(root, app, opts = {}) {
   const input = root.querySelector('[data-action=q]');
   const results = root.querySelector('[data-results]');
   const showResults = () => {
-    const q = ui.q.trim().toLowerCase();
+    const q = fold(ui.q.trim());
     if (!q) { results.innerHTML = ''; return; }
-    const hits = app.state.cards.filter((c) => `${c.name} ${c.playingStyle} ${c.position}`.toLowerCase().includes(q)).slice(0, 15);
+    const hits = app.state.cards.filter((c) => fold(`${c.name} ${c.playingStyle} ${c.position}`).includes(q)).slice(0, 15);
     results.innerHTML = hits.map((c) => `<div class="res" data-pick="${esc(c.id)}"><b>${esc(c.overall ?? '')}</b> ${esc(c.position)} · ${esc(c.name)} <span class="muted">${esc(c.playingStyle)} · ${c.progressionPoints} pts</span></div>`).join('') || '<div class="res muted">No match</div>';
     results.querySelectorAll('[data-pick]').forEach((el) => el.addEventListener('mousedown', () => { ui.q = ''; app.selectCard(el.dataset.pick); }));
   };
@@ -209,10 +209,10 @@ export function render(root, app, opts = {}) {
   const mInput = root.querySelector('[data-action=mq]');
   const mRes = root.querySelector('[data-mresults]');
   const showManagers = () => {
-    const q = ui.mq.trim().toLowerCase();
+    const q = fold(ui.mq.trim());
     if (!q) { mRes.innerHTML = ''; return; }
     const st = ui.manager.playstyle;
-    const hits = (D.managers ?? []).filter((m) => m.name.toLowerCase().includes(q)).sort((x, y) => y[st] - x[st]).slice(0, 12);
+    const hits = (D.managers ?? []).filter((m) => fold(m.name).includes(q)).sort((x, y) => y[st] - x[st]).slice(0, 12);
     mRes.innerHTML = hits.map((m) => `<div class="res" data-mpick="${esc(m.id)}"><b class="t-mgr">${m[st]}</b> ${esc(m.name)} <span class="muted">${esc(m.boosts.join(' · '))}</span></div>`).join('') || '<div class="res muted">No match</div>';
     mRes.querySelectorAll('[data-mpick]').forEach((el) => el.addEventListener('mousedown', () => { ui.manager.id = el.dataset.mpick; ui.mq = ''; app.update(); }));
   };

@@ -1,5 +1,5 @@
 // Managers: browse eFHUB managers (from tools/efhub_managers.py) by team playstyle proficiency and boosts.
-import { esc } from './common.js';
+import { esc, fold } from './common.js';
 import { parseCSV } from '../data/importer.js';
 
 export const PLAYSTYLES = [
@@ -26,8 +26,9 @@ export function render(root, app) {
     return;
   }
   const boosts = [...new Set(all.flatMap((m) => m.boosts.map((b) => b.replace(/ \+\d+$/, ''))))].sort();
-  const q = ui.q.toLowerCase();
-  const list = all.filter((m) => m[ui.style] >= ui.min && (!q || m.name.toLowerCase().includes(q))
+  const q = fold(ui.q.trim());
+  // Searching by name shows every match: the minimum-proficiency filter only applies to browsing.
+  const list = all.filter((m) => (q ? fold(m.name).includes(q) : m[ui.style] >= ui.min)
     && (ui.boost === 'all' || m.boosts.some((b) => b.startsWith(ui.boost + ' +'))))
     .sort((a, b) => b[ui.style] - a[ui.style] || a.name.localeCompare(b.name));
   const pages = Math.max(1, Math.ceil(list.length / PAGE));

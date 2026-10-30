@@ -1,4 +1,4 @@
-import { esc } from './common.js';
+import { esc, fold } from './common.js';
 import { statColor } from './planner.js';
 import { importText, CSV_TEMPLATE } from '../data/importer.js';
 import { matchCardSkills } from '../engine/skills.js';
@@ -9,9 +9,9 @@ const ui = { q: '', pos: 'all', skill: 'all', off: 'all', def: 'all', sort: 'ovr
 
 export function render(root, app) {
   const { D } = app;
-  const q = ui.q.toLowerCase();
+  const q = fold(ui.q.trim());
   let list = app.state.cards.filter((c) => (ui.pos === 'all' || c.position === ui.pos)
-    && (!q || `${c.name} ${c.version} ${c.playingStyle} ${c.defensivePlayingStyle ?? ''}`.toLowerCase().includes(q))
+    && (!q || fold(`${c.name} ${c.version} ${c.playingStyle} ${c.defensivePlayingStyle ?? ''}`).includes(q))
     && (ui.off === 'all' || c.playingStyle === ui.off) && (ui.def === 'all' || (c.defensivePlayingStyle || '—') === ui.def)
     && (ui.skill === 'all' || matchCardSkills(c.skills, D.skills).known.includes(ui.skill)));
   const offStyles = [...new Set(app.state.cards.map((c) => c.playingStyle).filter(Boolean))].sort();
