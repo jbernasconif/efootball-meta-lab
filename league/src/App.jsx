@@ -4629,6 +4629,10 @@ let LEAGUE_SCHEDULE = [];
 // Cada liga tiene un id. Las guardadas antes de que existiera reciben uno derivado de su
 // configuración, así que un snapshot viejo y la liga en curso de la que salió coinciden.
 let LEAGUE_ID = null;
+// Clubes que se retiraron de la liga en curso: { "Nelapoltsk": "2026-11-09" } (fecha del drop out).
+// Se guarda en league-config (viaja en el export y en las ligas archivadas). Sus partidos
+// pendientes se cargan como W.O. a mano; esto sólo los marca en la tabla.
+let LEAGUE_DROPPED = {};
 function legacyLeagueId(cfg) {
   const teams = (cfg?.teams || []).join("|");
   const rounds = cfg?.rounds || LEAGUE_DEFAULT_ROUNDS;
@@ -4659,6 +4663,7 @@ function applyLeagueConfig(cfg) {
   LEAGUE_ROUNDS = cfg?.rounds >= 1 ? cfg.rounds : LEAGUE_DEFAULT_ROUNDS;
   LEAGUE_SCHEDULE = buildLeagueFixtures(LEAGUE_TEAM_NAMES, LEAGUE_ROUNDS, cfg?.start);
   LEAGUE_ID = cfg ? (cfg.leagueId || legacyLeagueId(cfg)) : null;
+  LEAGUE_DROPPED = cfg?.dropped && typeof cfg.dropped === "object" ? { ...cfg.dropped } : {};
   return LEAGUE_SCHEDULE;
 }
 
@@ -5267,6 +5272,22 @@ function LeaguePage({ teams, unlocked }) {
     saveKey("league-results", next, true);
   }
 
+  // Marca o desmarca a un club como retirado (drop out) con la fecha de hoy.
+  async function toggleDrop(club) {
+    try {
+      const cfg = await loadLeagueConfigWithId();
+      const dropped = { ...(cfg.dropped || {}) };
+      if (dropped[club]) delete dropped[club];
+      else dropped[club] = new Date().toISOString().slice(0, 10);
+      const next = { ...cfg, dropped };
+      await saveKey(LEAGUE_CONFIG_KEY, next, true);
+      applyLeagueConfig(next);
+      setVersion((v) => v + 1);
+    } catch (e) {
+      alert("No se pudo guardar el drop out. Probá de nuevo.");
+    }
+  }
+
   if (results === undefined) {
     return <p style={{ color: TOKENS.muted }} className="text-sm">Cargando liga…</p>;
   }
@@ -5363,7 +5384,8 @@ function LeaguePage({ teams, unlocked }) {
       </div>
 
       {tab === "fixtures" && <LeagueFixtures teams={teams} results={results} unlocked={unlocked} setResult={setResult} />}
-      {tab === "table" && <LeagueTable teams={teams} table={table} playedCount={playedCount} />}
+      {tab === "table" && <LeagueTable teams={teams} table={table} playedCount={playedCount}
+                                       dropped={LEAGUE_DROPPED} unlocked={unlocked} onToggleDrop={toggleDrop} />}
       {tab === "stats" && <LeagueStats teams={teams} table={table} results={results} playedCount={playedCount} />}
       {tab === "archive" && (
         <LeagueArchive teams={teams} unlocked={unlocked}
@@ -5682,7 +5704,11 @@ function LeagueFixtures({ teams, results, unlocked, setResult, schedule: schedul
   );
 }
 
-function LeagueTable({ teams, table, playedCount, totalCount }) {
+// Club retirado (drop out): sólo se marca con una etiqueta roja "DROP OUT" (la fecha queda en el
+// tooltip). La tabla no cambia: puesto, orden y números siguen igual.
+const fmtDropDate = (iso) => { try { return new Date(`${iso}T12:00:00`).toLocaleDateString("es-CL", { day: "numeric", month: "short", year: "numeric" }); } catch (e) { return iso; } };
+function LeagueTable({ teams, table, playedCount, totalCount, dropped = {}, unlocked = false, onToggleDrop }) {
+  const isOut = (name) => !!dropped[name];
   return (
     <div>
       <div style={{ background: TOKENS.surface, borderColor: TOKENS.line }} className="border rounded-sm overflow-hidden">
@@ -5712,6 +5738,23 @@ function LeagueTable({ teams, table, playedCount, totalCount }) {
                     <div className="flex items-center gap-2.5">
                       <TeamCrest name={t.name} teams={teams} />
                       <span style={{ ...headingStyle, fontSize: "0.9rem" }} className="whitespace-nowrap">{t.name}</span>
+                      {unlocked && onToggleDrop ? (
+                        // en edición, el mismo botón: gris "drop out" para marcar, rojo "DROP OUT" (marcado) para quitar
+                        <button onClick={() => onToggleDrop(t.name)}
+                                title={isOut(t.name) ? `Drop out desde el ${fmtDropDate(dropped[t.name])} · clic para quitar` : "Marcar drop out"}
+                                style={{ ...headingStyle, fontSize: "0.55rem",
+                                         ...(isOut(t.name) ? { background: TOKENS.danger, color: "#fff", borderColor: TOKENS.danger }
+                                                           : { color: TOKENS.muted, borderColor: TOKENS.line }) }}
+                                className="border rounded-sm px-1.5 py-0.5 whitespace-nowrap">
+                          {isOut(t.name) ? "DROP OUT" : "drop out"}
+                        </button>
+                      ) : isOut(t.name) && (
+                        <span title={`Se retiró de la liga el ${fmtDropDate(dropped[t.name])}`}
+                              style={{ ...headingStyle, fontSize: "0.55rem", color: "#fff", background: TOKENS.danger }}
+                              className="rounded-sm px-1.5 py-0.5 whitespace-nowrap">
+                          DROP OUT
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td className="py-2.5 text-center">{t.pj}</td>
@@ -5993,7 +6036,8 @@ function ArchivedLeagueView({ rec, teams }) {
         </span>
       </div>
 
-      {tab === "table" && <LeagueTable teams={teams} table={table} playedCount={played} totalCount={total} />}
+      {tab === "table" && <LeagueTable teams={teams} table={table} playedCount={played} totalCount={total}
+                                       dropped={cfg.dropped || {}} />}
       {tab === "fixtures" && <LeagueFixtures teams={teams} results={results} unlocked={false} setResult={() => {}} schedule={schedule} />}
       {tab === "stats" && (
         <LeagueStats teams={teams} table={table} results={results} playedCount={played}
