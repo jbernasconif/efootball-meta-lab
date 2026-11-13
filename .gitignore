@@ -18,3 +18,6 @@ league/node_modules/
 league/dist/
 dist/
 site/
+
+# Secrets (Discord bot token, etc.) — never committed
+.env

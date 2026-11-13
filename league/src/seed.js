@@ -19,8 +19,8 @@ export async function seedFromFile() {
 
   const byId = (mine, theirs) => {
     const m = {};
-    (mine || []).forEach((x) => { if (x && x.archiveId) m[x.archiveId] = x; });
-    (theirs || []).forEach((x) => { if (x && x.archiveId) m[x.archiveId] = x; });   // el archivo gana
+    (mine || []).forEach((x) => { const k = x && (x.archiveId || x.id); if (k) m[k] = x; });
+    (theirs || []).forEach((x) => { const k = x && (x.archiveId || x.id); if (k) m[k] = x; });   // el archivo gana (traspasos: por id)
     return Object.values(m).sort((a, b) => (a.savedAt || a.at || 0) - (b.savedAt || b.at || 0));
   };
   Object.keys(data).forEach((k) => {
