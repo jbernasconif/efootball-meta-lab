@@ -3567,12 +3567,15 @@ function HomeLastSeason({ tournaments, teams, onGo }) {
     return KIKUDES_PRESETS.every((k) => ks.has(k));
   };
   const done = Object.entries(podium).filter(([s, v]) => complete(s, v)).sort(([a], [b]) => seasonRank(b) - seasonRank(a));
-  const [season, v] = done[0] || [];
+  const [lastDone] = done[0] || [];
   // "en curso" sólo si es MÁS NUEVA que la última completa: una temporada vieja a medias
   // no es la actual
   const cur = Object.entries(podium)
-    .filter(([s, w]) => w.places[0] && !complete(s, w) && (!season || seasonRank(s) > seasonRank(season)))
+    .filter(([s, w]) => w.places[0] && !complete(s, w) && (!lastDone || seasonRank(s) > seasonRank(lastDone)))
     .sort(([a], [b]) => seasonRank(b) - seasonRank(a))[0];
+  // La tarjeta enseña la temporada en curso con sus puntos; si no hay ninguna, la última completa.
+  const live = !!cur;
+  const [season, v] = cur || done[0] || [];
 
   if (!season) {
     return (
@@ -3583,10 +3586,11 @@ function HomeLastSeason({ tournaments, teams, onGo }) {
     );
   }
   const w = v.places[0];
-  const kik = (bySeason[season] || []).filter((t) => !t.kind)
-    .sort((a, b) => kikudesRank(a.kikudes) - kikudesRank(b.kikudes));
-  const champs = kik.map((t) => tournamentChampion(t));
-  const golden = champs.length >= 4 && champs.every((x) => x && x === champs[0]);
+  // siempre los cuatro huecos: en la temporada en curso los que faltan salen vacíos
+  const played = (bySeason[season] || []).filter((t) => !t.kind);
+  const kik = KIKUDES_PRESETS.map((k) => played.find((t) => (t.kikudes || "").trim() === k) || { kikudes: k, pending: true });
+  const champs = kik.map((t) => (t.pending ? null : tournamentChampion(t)));
+  const golden = !live && champs.length >= 4 && champs.every((x) => x && x === champs[0]);
   const margin = v.places[1] ? w.pts - v.places[1].pts : null;
 
   return (
@@ -3597,7 +3601,9 @@ function HomeLastSeason({ tournaments, teams, onGo }) {
         <span style={{ ...headingStyle, color: TOKENS.chalk, fontSize: "0.85rem" }} className="flex-1 truncate">
           Temporada {season}
         </span>
-        <span style={{ color: TOKENS.muted, fontSize: "0.55rem" }}>última completa</span>
+        <span style={{ color: live ? TOKENS.gold : TOKENS.muted, fontSize: "0.55rem" }}>
+          {live ? `en curso · ${v.counted}/${Math.max(v.of, 4)} torneos` : "última completa"}
+        </span>
         <span style={{ color: TOKENS.muted }} className="text-xs">›</span>
       </button>
 
@@ -3609,7 +3615,9 @@ function HomeLastSeason({ tournaments, teams, onGo }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 mb-0.5">
             <Trophy size={12} style={{ color: TOKENS.gold }} />
-            <span style={{ ...headingStyle, fontSize: "0.5rem", color: TOKENS.muted }}>Campeón de temporada</span>
+            <span style={{ ...headingStyle, fontSize: "0.5rem", color: TOKENS.muted }}>
+              {live ? "Lidera la temporada" : "Campeón de temporada"}
+            </span>
           </div>
           <div style={{ ...pixelStyle, fontSize: "1.2rem" }} className="truncate">{w.name}</div>
           <div style={{ color: TOKENS.muted, fontSize: "0.6rem" }}>
@@ -3651,11 +3659,10 @@ function HomeLastSeason({ tournaments, teams, onGo }) {
                   className="text-right shrink-0">{p.pts}</span>
           </div>
         ))}
-        {cur && (
+        {live && lastDone && podium[lastDone]?.places[0] && (
           <div style={{ color: TOKENS.muted, fontSize: "0.5rem", borderTop: `1px solid ${TOKENS.line}` }}
                className="px-2 py-1.5 mt-1">
-            En curso: Temporada {cur[0]} · lidera {cur[1].places[0].name} con {cur[1].places[0].pts} pts
-            {" "}({cur[1].counted}/{Math.max(cur[1].of, 4)} torneos)
+            Última completa: Temporada {lastDone} · campeón {podium[lastDone].places[0].name} con {podium[lastDone].places[0].pts} pts
           </div>
         )}
       </div>
@@ -11628,8 +11635,24 @@ function TrophyCabinet({ teamName, manual, editing, onRemove }) {
               </span>
             ))}
           </div>
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-1.5">
-            {earned.timeline.map((t, i) => {
+          {/* Una fila por temporada y una columna por Kikudes (Primero … Cuarto), siempre 4 por
+              fila, sea cual sea el ancho: así se lee como una tabla, en el móvil también. */}
+          <div className="space-y-2">
+          {Array.from(new Set(earned.timeline.map((t) => (t.season || "").trim())))
+            .sort((a, b) => seasonRank(a) - seasonRank(b) || a.localeCompare(b))
+            .map((season) => {
+              const row = earned.timeline.filter((t) => (t.season || "").trim() === season);
+              const cells = [0, 1, 2, 3].map((ci) => row.find((t) => KIKUDES_PRESETS.indexOf((t.kikudes || "").trim()) === ci) || null);
+              // lo que no encaja en Primero…Cuarto (nombre raro, o repetido) va al primer hueco libre
+              row.filter((t) => !cells.includes(t)).forEach((t) => { const k = cells.indexOf(null); if (k !== -1) cells[k] = t; });
+              return (
+                <div key={season || "?"}>
+                  <div style={{ ...headingStyle, fontSize: "0.52rem", color: TOKENS.muted }} className="mb-1">
+                    Temporada {season || "?"}
+                  </div>
+                  <div className="grid gap-1.5" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
+            {cells.map((t, i) => {
+              if (!t) return <div key={i} style={{ border: `1px dashed ${TOKENS.line}`, opacity: 0.35 }} className="rounded-sm" />;
               const m = t.place && t.place <= 3 ? MEDALS[t.place] : null;
               const missed = !t.entered;
               const col = t.slam ? "#B8322F" : m ? m.color : TOKENS.muted;
@@ -11642,7 +11665,7 @@ function TrophyCabinet({ teamName, manual, editing, onRemove }) {
                      style={{ background: bg, borderColor: missed ? TOKENS.line : col,
                               borderStyle: missed ? "dashed" : "solid", opacity: missed ? 0.5 : 1,
                               boxShadow: t.slam ? `0 0 0 1px ${col}55` : undefined }}
-                     className="border rounded-sm px-1.5 py-1 flex items-center gap-1.5">
+                     className="border rounded-sm px-1 sm:px-1.5 py-1 flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1.5 text-center sm:text-left">
                   <div style={{ background: missed ? "transparent" : col, width: 20, height: 20,
                                 border: missed ? `1px dashed ${TOKENS.muted}` : undefined }}
                        className="rounded-full flex items-center justify-center shrink-0">
@@ -11652,13 +11675,17 @@ function TrophyCabinet({ teamName, manual, editing, onRemove }) {
                         ? <Star size={10} fill="#FFF6DA" style={{ color: "#FFF6DA" }} />
                         : <span style={{ ...headingStyle, color: "#fff", fontSize: "0.6rem" }}>{t.place}</span>}
                   </div>
-                  <div className="min-w-0 flex-1 leading-tight">
-                    <div style={{ ...headingStyle, fontSize: "0.58rem", color: missed ? TOKENS.muted : TOKENS.ink }} className="truncate">
+                  <div className="min-w-0 w-full sm:w-auto sm:flex-1 leading-tight">
+                    <div style={{ ...headingStyle, fontSize: "0.58rem", color: missed ? TOKENS.muted : t.slam ? "#8C2F22" : TOKENS.ink }} className="truncate">
                       {t.kikudes || t.label}
                     </div>
-                    <div style={{ color: TOKENS.muted, fontSize: "0.5rem" }} className="truncate">
-                      {t.season || ""}{missed ? " · no jugó" : ""}
+                    <div style={{ color: t.slam ? "#8C2F22" : TOKENS.muted, fontSize: "0.5rem" }} className="truncate">
+                      {missed ? "no jugó" : t.slam ? "Grand Slam" : t.place === 1 ? "Campeón" : t.place ? `${t.place}º de ${t.of}` : ""}
                     </div>
+                  </div>
+                </div>
+              );
+            })}
                   </div>
                 </div>
               );
@@ -12314,28 +12341,56 @@ function whenTag(season, part) {
   return [s, p].filter(Boolean).join(" · ") || "—";
 }
 
-// La copa Kikudes: cuerpo azul que se estrecha y se abre en la base, y arriba los aros
-// amarillos de la "e" de eFootball. La de Grand Slam es la misma copa bañada en oro, con
-// aros rojos y estrella encima: se distingue de un vistazo sin dejar de ser un Kikudes.
-function KikudesCupArt({ slam = false, size = 72 }) {
+// Colores de la copa Kikudes por temporada: [claro, principal, oscuro] del cuerpo, el
+// detalle (los aros de la "e") y la base. Sin temporada en la lista, la de la imagen original:
+// azul con amarillo.
+const KIKUDES_CUP_COLORS = {
+  Primera: { body: ["#7C9BFF", "#1D4ED8", "#0B1E6E"], ring: "#FF6FB5", base: "#0A1650" },
+  Segunda: { body: ["#6B6B6B", "#1C1C1C", "#000000"], ring: "#FFFFFF", base: "#0D0D0D" },
+  Tercera: { body: ["#FFF27A", "#F2D600", "#8F7E00"], ring: "#111111", base: "#1A1A1A" },
+  Cuarta:  { body: ["#FF8080", "#D21F1F", "#6E0B0B"], ring: "#FFFFFF", base: "#4A0808" },
+  Quinta:  { body: ["#7C9BFF", "#1D4ED8", "#0B1E6E"], ring: "#111111", base: "#0A1650" },
+  Sexta:   { body: ["#74E8A0", "#1E9E4A", "#0B4F22"], ring: "#FFFFFF", base: "#0B3A1A" },
+  // Séptima: el degradado neón del logo "7MA" (azul eléctrico → violeta → magenta → naranja),
+  // de arriba abajo, con aros rosa neón.
+  Séptima: { body: ["#C9A4FF", "#9B4DFF", "#3A0E6E"], ring: "#FF4FD8", base: "#2A0B4A",
+             vertical: ["#4F7BFF", "#8F5BFF", "#E042C8", "#FF7A59", "#FFB347"] },
+};
+const KIKUDES_CUP_DEFAULT = { body: ["#5C7CFA", "#1D3FD0", "#0B1E6E"], ring: "#F2E205", base: "#0A1650" };
+
+// La copa Kikudes: cuerpo que se estrecha y se abre en la base, y arriba los aros de la "e"
+// de eFootball, con los colores de su temporada. La de Grand Slam lleva una estrella encima.
+// Un contorno claro y fino para que el negro (Segunda, detalle de Tercera y Quinta) se vea
+// sobre el fondo oscuro.
+function KikudesCupArt({ season, slam = false, size = 72 }) {
   const id = React.useId().replace(/:/g, "");
-  const body = slam ? ["#FFE9A3", "#D4A017", "#8A6410"] : ["#5C7CFA", "#1D3FD0", "#0B1E6E"];
-  const ring = slam ? "#C4432E" : "#F2E205";
+  const c = KIKUDES_CUP_COLORS[(season || "").trim()] || KIKUDES_CUP_DEFAULT;
+  const body = c.body, ring = c.ring, edge = "rgba(255,255,255,0.45)";
   return (
     <svg width={size * 0.5} height={size} viewBox="0 0 50 100" aria-hidden="true">
       <defs>
-        <linearGradient id={`kb${id}`} x1="0" x2="1">
-          <stop offset="0" stopColor={body[2]} /><stop offset="0.35" stopColor={body[0]} />
-          <stop offset="0.6" stopColor={body[1]} /><stop offset="1" stopColor={body[2]} />
-        </linearGradient>
+        {c.vertical ? (
+          // el cuerpo va de y=34 a y=80: el degradado se ajusta a ese tramo
+          <linearGradient id={`kb${id}`} x1="0" x2="0" y1="34" y2="80" gradientUnits="userSpaceOnUse">
+            {c.vertical.map((col, i) => <stop key={i} offset={i / (c.vertical.length - 1)} stopColor={col} />)}
+          </linearGradient>
+        ) : (
+          <linearGradient id={`kb${id}`} x1="0" x2="1">
+            <stop offset="0" stopColor={body[2]} /><stop offset="0.35" stopColor={body[0]} />
+            <stop offset="0.6" stopColor={body[1]} /><stop offset="1" stopColor={body[2]} />
+          </linearGradient>
+        )}
       </defs>
       {slam && <path d="M25 0l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.6-4.8 2.6.9-5.4-3.9-3.8 5.4-.8z" fill="#FFD84A" stroke="#8A6410" strokeWidth="0.6" />}
+      <ellipse cx="25" cy="22" rx="20" ry="7.5" fill="none" stroke={edge} strokeWidth="5.4" />
+      <ellipse cx="25" cy="31" rx="21" ry="7.5" fill="none" stroke={edge} strokeWidth="5.4" />
       <ellipse cx="25" cy="22" rx="20" ry="7.5" fill="none" stroke={ring} strokeWidth="4.2" />
       <ellipse cx="25" cy="31" rx="21" ry="7.5" fill="none" stroke={ring} strokeWidth="4.2" />
-      <rect x="6" y="25" width="38" height="3.2" rx="1.5" fill={ring} />
-      <path d="M8 34 Q25 44 42 34 L31 66 Q29 72 33 80 L17 80 Q21 72 19 66 Z" fill={`url(#kb${id})`} />
-      <path d="M13 80 H37 L39 92 H11 Z" fill={slam ? "#6B4E0C" : "#0A1650"} />
-      <rect x="9" y="92" width="32" height="5" rx="1.2" fill={slam ? "#4A3608" : "#060E36"} />
+      <rect x="6" y="25" width="38" height="3.2" rx="1.5" fill={ring} stroke={edge} strokeWidth="0.5" />
+      <path d="M8 34 Q25 44 42 34 L31 66 Q29 72 33 80 L17 80 Q21 72 19 66 Z" fill={`url(#kb${id})`}
+            stroke={edge} strokeWidth="0.7" />
+      <path d="M13 80 H37 L39 92 H11 Z" fill={c.base} stroke={edge} strokeWidth="0.6" />
+      <rect x="9" y="92" width="32" height="5" rx="1.2" fill={c.base} stroke={edge} strokeWidth="0.6" />
       <ellipse cx="25" cy="86" rx="3.6" ry="2" fill="none" stroke={ring} strokeWidth="1.3" />
     </svg>
   );
@@ -12361,10 +12416,13 @@ function LeagueShieldArt({ size = 72 }) {
 }
 
 // Trofeo de campeón de temporada: la copa clásica de dos asas, en oro.
-function SeasonTrophyArt({ size = 72 }) {
+// Con Golden Road (los cuatro Kikudes de esa temporada) lleva una estrella encima, igual
+// que la copa del Grand Slam.
+function SeasonTrophyArt({ golden = false, size = 72 }) {
   const id = React.useId().replace(/:/g, "");
   return (
-    <svg width={size * 0.8} height={size} viewBox="0 0 80 100" aria-hidden="true">
+    <svg width={size * 80 / 116} height={size} viewBox="0 -16 80 116" aria-hidden="true">
+      {golden && <path d="M40 -16l3.4 6.9 7.6 1.1-5.5 5.4 1.3 7.6-6.8-3.6-6.8 3.6 1.3-7.6-5.5-5.4 7.6-1.1z" fill="#FFD84A" stroke="#8A6410" strokeWidth="0.8" />}
       <defs>
         <linearGradient id={`st${id}`} x1="0" x2="1">
           <stop offset="0" stopColor="#8A6410" /><stop offset="0.35" stopColor="#FFE9A3" />
@@ -12411,7 +12469,13 @@ function TeamTrophies({ teamName }) {
   const earned = data ? earnedHonours(data.tournaments, teamName) : { timeline: [], seasonPlaces: [] };
   const cups = earned.timeline.filter((t) => t.place === 1);
   const slams = cups.filter((t) => t.slam).length;
-  const seasons = earned.seasonPlaces.filter((s) => s.place === 1 && !s.provisional);
+  // Una temporada sólo da trofeo cuando terminó, o sea cuando ya empezó la siguiente: la
+  // que está en curso puede ir liderándose sin estar ganada ("Inter" no cuenta como siguiente).
+  const latestSeason = data
+    ? Math.max(-1, ...data.tournaments.map((t) => seasonRank(t.season)).filter((r) => r < SEASON_PRESETS.indexOf("Inter")))
+    : -1;
+  const seasons = earned.seasonPlaces.filter((s) => s.place === 1 && !s.provisional
+                                                   && seasonRank(s.season) < latestSeason);
   const leagues = data
     ? data.tournaments
         .filter((t) => t.kind === "league"
@@ -12420,6 +12484,11 @@ function TeamTrophies({ teamName }) {
           || KIKUDES_PRESETS.indexOf(a.kikudes) - KIKUDES_PRESETS.indexOf(b.kikudes))
     : [];
   const total = cups.length + leagues.length + seasons.length;
+  // Golden Road: los cuatro Kikudes de una temporada (sin contar las ligas, que comparten
+  // nombre de parte con los Kikudes)
+  const golden = new Set(data
+    ? goldenRoadsFor(data.tournaments.filter((t) => !t.kind), teamName).map((g) => g.season.trim())
+    : []);
 
   return (
     <div>
@@ -12431,6 +12500,10 @@ function TeamTrophies({ teamName }) {
           <span style={{ background: "#F6E0DC", color: "#8C2F22", ...headingStyle, fontSize: "0.5rem" }}
                 className="rounded-sm px-1.5 py-0.5">{slams} Grand Slam</span>
         )}
+        {golden.size > 0 && (
+          <span style={{ background: "#FBF0CC", color: "#8A6A12", ...headingStyle, fontSize: "0.5rem" }}
+                className="rounded-sm px-1.5 py-0.5">{golden.size} Golden Road</span>
+        )}
       </div>
       {!data && <p style={{ color: TOKENS.muted }} className="text-sm">Leyendo el historial…</p>}
       {data && total === 0 && <p style={{ color: TOKENS.muted }} className="text-sm">Sin trofeos todavía.</p>}
@@ -12438,7 +12511,7 @@ function TeamTrophies({ teamName }) {
         {cups.length > 0 && (
           <TrophyShelf label="Kikudes" count={cups.length}>
             {cups.map((t, i) => (
-              <TrophyPiece key={i} art={<KikudesCupArt slam={t.slam} />} tag={whenTag(t.season, t.kikudes)}
+              <TrophyPiece key={i} art={<KikudesCupArt season={t.season} slam={t.slam} />} tag={whenTag(t.season, t.kikudes)}
                            glow={t.slam ? "#FFD84A" : null}
                            title={`Campeón — Kikudes ${t.kikudes || "?"}, Temporada ${t.season || "?"}${t.slam ? " · GRAND SLAM" : ""}`} />
             ))}
@@ -12455,8 +12528,10 @@ function TeamTrophies({ teamName }) {
         {seasons.length > 0 && (
           <TrophyShelf label="Temporadas" count={seasons.length}>
             {seasons.map((s) => (
-              <TrophyPiece key={s.season} art={<SeasonTrophyArt />} tag={whenTag(s.season)}
-                           title={`Campeón de la Temporada ${s.season} · ${s.pts} pts`} />
+              <TrophyPiece key={s.season} art={<SeasonTrophyArt golden={golden.has(s.season.trim())} />}
+                           tag={whenTag(s.season)}
+                           glow={golden.has(s.season.trim()) ? "#FFD84A" : null}
+                           title={`Campeón de la Temporada ${s.season} · ${s.pts} pts${golden.has(s.season.trim()) ? " · GOLDEN ROAD (los 4 Kikudes)" : ""}`} />
             ))}
           </TrophyShelf>
         )}
@@ -13638,7 +13713,7 @@ function TeamDetail({ team, teams, unlocked, onBack, onSave, onDelete, onSwitch 
 
           <TeamLeagueRoster teamName={draft.name} teams={teams} />
 
-          <TeamSquad teamName={draft.name} teams={teams} />
+          {/* El plantel histórico (TeamSquad) se quitó de la ficha a pedido; el componente queda. */}
 
           <TeamRankingSection teamName={draft.name} teams={teams} />
 
