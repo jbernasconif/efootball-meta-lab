@@ -12358,84 +12358,156 @@ const KIKUDES_CUP_COLORS = {
 };
 const KIKUDES_CUP_DEFAULT = { body: ["#5C7CFA", "#1D3FD0", "#0B1E6E"], ring: "#F2E205", base: "#0A1650" };
 
-// La copa Kikudes: cuerpo que se estrecha y se abre en la base, y arriba los aros de la "e"
-// de eFootball, con los colores de su temporada. La de Grand Slam lleva una estrella encima.
-// Un contorno claro y fino para que el negro (Segunda, detalle de Tercera y Quinta) se vea
-// sobre el fondo oscuro.
-function KikudesCupArt({ season, slam = false, size = 72 }) {
+// Degradado del cuerpo según la paleta de la temporada: horizontal con brillo (metal), o
+// vertical para la Séptima (el neón del logo "7MA").
+function CupBodyGradient({ id, c, y1, y2 }) {
+  if (c.vertical) {
+    return (
+      <linearGradient id={id} x1="0" x2="0" y1={y1} y2={y2} gradientUnits="userSpaceOnUse">
+        {c.vertical.map((col, i) => <stop key={i} offset={i / (c.vertical.length - 1)} stopColor={col} />)}
+      </linearGradient>
+    );
+  }
+  const [light, main, dark] = c.body;
+  return (
+    <linearGradient id={id} x1="0" x2="1">
+      <stop offset="0" stopColor={dark} /><stop offset="0.22" stopColor={main} />
+      <stop offset="0.4" stopColor={light} /><stop offset="0.62" stopColor={main} />
+      <stop offset="1" stopColor={dark} />
+    </linearGradient>
+  );
+}
+const TROPHY_EDGE = "rgba(255,255,255,0.45)";   // contorno fino: que el negro se vea sobre fondo oscuro
+const STAR_PATH = (cx, cy, r) => {
+  const pts = [];
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    const rr = i % 2 ? r * 0.45 : r;
+    pts.push(`${(cx + rr * Math.cos(a)).toFixed(2)},${(cy + rr * Math.sin(a)).toFixed(2)}`);
+  }
+  return `M${pts.join("L")}Z`;
+};
+function TopStar({ cx, cy, r }) {
+  return <path d={STAR_PATH(cx, cy, r)} fill="#FFD84A" stroke="#8A6410" strokeWidth="0.9" strokeLinejoin="round" />;
+}
+
+// La copa Kikudes, como la de eFootball: arriba la "e" (banda superior, barra y banda
+// inferior abierta a la derecha, con el color del cuerpo por dentro), cuerpo que se
+// estrecha hasta una cintura fina, pie que se abre con la "e" pequeña y base con aro.
+// Colores según la temporada; el Grand Slam lleva una estrella encima.
+function KikudesCupArt({ season, slam = false, size = 80 }) {
   const id = React.useId().replace(/:/g, "");
   const c = KIKUDES_CUP_COLORS[(season || "").trim()] || KIKUDES_CUP_DEFAULT;
-  const body = c.body, ring = c.ring, edge = "rgba(255,255,255,0.45)";
+  const ring = c.ring;
+  const top = "M7 22 C7 5 53 5 53 22";
+  const bottom = "M7 30 C7 46 47 47 53 35";
   return (
-    <svg width={size * 0.5} height={size} viewBox="0 0 50 100" aria-hidden="true">
+    <svg width={(size * 60) / 136} height={size} viewBox="0 -16 60 136" aria-hidden="true">
       <defs>
-        {c.vertical ? (
-          // el cuerpo va de y=34 a y=80: el degradado se ajusta a ese tramo
-          <linearGradient id={`kb${id}`} x1="0" x2="0" y1="34" y2="80" gradientUnits="userSpaceOnUse">
-            {c.vertical.map((col, i) => <stop key={i} offset={i / (c.vertical.length - 1)} stopColor={col} />)}
-          </linearGradient>
-        ) : (
-          <linearGradient id={`kb${id}`} x1="0" x2="1">
-            <stop offset="0" stopColor={body[2]} /><stop offset="0.35" stopColor={body[0]} />
-            <stop offset="0.6" stopColor={body[1]} /><stop offset="1" stopColor={body[2]} />
-          </linearGradient>
-        )}
+        <CupBodyGradient id={`kb${id}`} c={c} y1={4} y2={118} />
+        <linearGradient id={`kr${id}`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor="#FFFFFF" stopOpacity="0.55" /><stop offset="0.5" stopColor="#FFFFFF" stopOpacity="0" />
+        </linearGradient>
       </defs>
-      {slam && <path d="M25 0l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.6-4.8 2.6.9-5.4-3.9-3.8 5.4-.8z" fill="#FFD84A" stroke="#8A6410" strokeWidth="0.6" />}
-      <ellipse cx="25" cy="22" rx="20" ry="7.5" fill="none" stroke={edge} strokeWidth="5.4" />
-      <ellipse cx="25" cy="31" rx="21" ry="7.5" fill="none" stroke={edge} strokeWidth="5.4" />
-      <ellipse cx="25" cy="22" rx="20" ry="7.5" fill="none" stroke={ring} strokeWidth="4.2" />
-      <ellipse cx="25" cy="31" rx="21" ry="7.5" fill="none" stroke={ring} strokeWidth="4.2" />
-      <rect x="6" y="25" width="38" height="3.2" rx="1.5" fill={ring} stroke={edge} strokeWidth="0.5" />
-      <path d="M8 34 Q25 44 42 34 L31 66 Q29 72 33 80 L17 80 Q21 72 19 66 Z" fill={`url(#kb${id})`}
-            stroke={edge} strokeWidth="0.7" />
-      <path d="M13 80 H37 L39 92 H11 Z" fill={c.base} stroke={edge} strokeWidth="0.6" />
-      <rect x="9" y="92" width="32" height="5" rx="1.2" fill={c.base} stroke={edge} strokeWidth="0.6" />
-      <ellipse cx="25" cy="86" rx="3.6" ry="2" fill="none" stroke={ring} strokeWidth="1.3" />
+      {slam && <TopStar cx={30} cy={-7} r={8} />}
+
+      {/* cuerpo y pie */}
+      <ellipse cx="30" cy="44" rx="21" ry="4" fill={c.body[2]} />
+      <path d="M9 44 C11 66 22 80 26 93 L34 93 C38 80 49 66 51 44 Z" fill={`url(#kb${id})`} stroke={TROPHY_EDGE} strokeWidth="0.7" />
+      <path d="M26 93 C25.5 101 21 108 17 113 L43 113 C39 108 34.5 101 34 93 Z" fill={`url(#kb${id})`} stroke={TROPHY_EDGE} strokeWidth="0.7" />
+      <path d="M15 47 C17 64 23.5 78 26.5 90 L28.2 90 C25.6 78 20 64 18.6 47 Z" fill="#FFFFFF" opacity="0.35" />
+      <path d="M41 47 C40 60 37 72 34.6 82 L35.4 82 C38.2 72 41.6 60 42.6 47 Z" fill="#FFFFFF" opacity="0.18" />
+      {/* la "e" pequeña del pie */}
+      <g fill="none" stroke={ring} strokeWidth="1.3" strokeLinecap="round">
+        <path d="M26 101 C26 97.4 34 97.4 34 101" />
+        <path d="M26 104 C26 107.4 33 107.6 34 105.2" />
+      </g>
+      <rect x="25.6" y="101.9" width="8.8" height="1.3" rx="0.6" fill={ring} />
+      {/* base con aro */}
+      <ellipse cx="30" cy="114" rx="14" ry="3" fill={ring} stroke={TROPHY_EDGE} strokeWidth="0.5" />
+      <rect x="16" y="114" width="28" height="4.5" fill={ring} />
+      <ellipse cx="30" cy="118.5" rx="14" ry="2.6" fill={c.base} stroke={TROPHY_EDGE} strokeWidth="0.5" />
+
+      {/* la "e" de arriba: color del cuerpo por dentro, bandas del color de detalle */}
+      <ellipse cx="30" cy="26" rx="22" ry="13" fill={`url(#kb${id})`} />
+      <g fill="none" strokeLinecap="butt">
+        <path d={top} stroke={TROPHY_EDGE} strokeWidth="9.4" />
+        <path d={bottom} stroke={TROPHY_EDGE} strokeWidth="9.4" />
+        <path d={top} stroke={ring} strokeWidth="8" />
+        <path d={bottom} stroke={ring} strokeWidth="8" />
+      </g>
+      <rect x="4" y="22.3" width="52" height="7" rx="3.5" fill={ring} stroke={TROPHY_EDGE} strokeWidth="0.6" />
+      <path d="M10 18.5 C12 9.5 48 9.5 50 18.5" fill="none" stroke="#FFFFFF" strokeOpacity="0.5" strokeWidth="1.2" />
+      <rect x="6" y="23" width="48" height="2.2" rx="1.1" fill={`url(#kr${id})`} />
     </svg>
   );
 }
 
-// Escudo de campeón de liga: turquesa de la liga, borde dorado, estrella y LIGA.
-function LeagueShieldArt({ size = 72 }) {
+// Escudo de campeón de liga: marco dorado con bisel, campo turquesa de la liga con brillo,
+// estrella grande y la cinta LIGA.
+function LeagueShieldArt({ size = 80 }) {
   const id = React.useId().replace(/:/g, "");
+  const outer = "M42 3 L79 13 V48 C79 74 62 90 42 98 C22 90 5 74 5 48 V13 Z";
+  const inner = "M42 9 L73 17.5 V48 C73 70 58.5 84 42 91 C25.5 84 11 70 11 48 V17.5 Z";
   return (
-    <svg width={size * 0.8} height={size} viewBox="0 0 80 100" aria-hidden="true">
+    <svg width={(size * 84) / 100} height={size} viewBox="0 0 84 100" aria-hidden="true">
       <defs>
-        <linearGradient id={`ls${id}`} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#5FE0C2" /><stop offset="1" stopColor="#0C7B6A" />
+        <linearGradient id={`lg${id}`} x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0" stopColor="#FFF0B3" /><stop offset="0.45" stopColor="#D4A017" /><stop offset="1" stopColor="#7A560C" />
         </linearGradient>
+        <linearGradient id={`lt${id}`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor="#6FF0D2" /><stop offset="0.55" stopColor="#1FA88C" /><stop offset="1" stopColor="#0A5C50" />
+        </linearGradient>
+        <radialGradient id={`ls${id}`} cx="0.4" cy="0.35" r="0.7">
+          <stop offset="0" stopColor="#FFFBEA" /><stop offset="0.6" stopColor="#FFD84A" /><stop offset="1" stopColor="#C9910E" />
+        </radialGradient>
       </defs>
-      <path d="M40 4 L74 14 V48 C74 72 58 88 40 96 C22 88 6 72 6 48 V14 Z" fill="#E8C24A" />
-      <path d="M40 10 L68 18 V48 C68 68 55 82 40 89 C25 82 12 68 12 48 V18 Z" fill={`url(#ls${id})`} />
-      <path d="M40 24l4.7 9.6 10.6 1.5-7.7 7.5 1.8 10.5L40 48.1l-9.4 5 1.8-10.5-7.7-7.5 10.6-1.5z" fill="#FFF3C4" />
-      <text x="40" y="74" textAnchor="middle" fontSize="13" fontWeight="800" fill="#06231C"
-            style={{ letterSpacing: 1 }}>LIGA</text>
+      <path d={outer} fill={`url(#lg${id})`} stroke="#5A3E08" strokeWidth="1" />
+      <path d={inner} fill={`url(#lt${id})`} />
+      <path d="M42 13 L69.5 20.6 V48 C69.5 67.5 56.6 80.2 42 86.6 C27.4 80.2 14.5 67.5 14.5 48 V20.6 Z"
+            fill="none" stroke="#FFE9A3" strokeOpacity="0.7" strokeWidth="0.9" />
+      {/* brillo diagonal */}
+      <path d="M11 17.5 L42 9 L42 50 C30 52 18 54 11 56 Z" fill="#FFFFFF" opacity="0.14" />
+      <path d={STAR_PATH(42, 38, 15)} fill={`url(#ls${id})`} stroke="#8A6410" strokeWidth="0.9" strokeLinejoin="round" />
+      {/* cinta */}
+      <path d="M6 60 H78 L73 68.5 L78 77 H6 L11 68.5 Z" fill={`url(#lg${id})`} stroke="#5A3E08" strokeWidth="0.9" />
+      <text x="42" y="72.6" textAnchor="middle" fontSize="11" fontWeight="900" fill="#2A1A02"
+            style={{ letterSpacing: 2.5 }}>LIGA</text>
     </svg>
   );
 }
 
-// Trofeo de campeón de temporada: la copa clásica de dos asas, en oro.
-// Con Golden Road (los cuatro Kikudes de esa temporada) lleva una estrella encima, igual
-// que la copa del Grand Slam.
-function SeasonTrophyArt({ golden = false, size = 72 }) {
+// Trofeo de campeón de temporada: la copa clásica de dos asas, con los colores de esa
+// temporada (cuerpo del color principal, asas, borde y estrella del de detalle). Con Golden
+// Road (los cuatro Kikudes de esa temporada) lleva una estrella encima, como el Grand Slam.
+function SeasonTrophyArt({ season, golden = false, size = 80 }) {
   const id = React.useId().replace(/:/g, "");
+  const c = KIKUDES_CUP_COLORS[(season || "").trim()] || KIKUDES_CUP_DEFAULT;
+  const ring = c.ring;
   return (
-    <svg width={size * 80 / 116} height={size} viewBox="0 -16 80 116" aria-hidden="true">
-      {golden && <path d="M40 -16l3.4 6.9 7.6 1.1-5.5 5.4 1.3 7.6-6.8-3.6-6.8 3.6 1.3-7.6-5.5-5.4 7.6-1.1z" fill="#FFD84A" stroke="#8A6410" strokeWidth="0.8" />}
+    <svg width={(size * 90) / 120} height={size} viewBox="0 -16 90 120" aria-hidden="true">
       <defs>
-        <linearGradient id={`st${id}`} x1="0" x2="1">
-          <stop offset="0" stopColor="#8A6410" /><stop offset="0.35" stopColor="#FFE9A3" />
-          <stop offset="0.65" stopColor="#D4A017" /><stop offset="1" stopColor="#8A6410" />
-        </linearGradient>
+        <CupBodyGradient id={`sb${id}`} c={c} y1={4} y2={62} />
       </defs>
-      <path d="M18 18 C2 18 2 46 24 48" fill="none" stroke="#B8860B" strokeWidth="5" />
-      <path d="M62 18 C78 18 78 46 56 48" fill="none" stroke="#B8860B" strokeWidth="5" />
-      <path d="M16 10 H64 V22 C64 44 52 56 40 58 C28 56 16 44 16 22 Z" fill={`url(#st${id})`} />
-      <rect x="35" y="58" width="10" height="14" fill="#B8860B" />
-      <path d="M24 72 H56 L59 86 H21 Z" fill="#5A3E08" />
-      <rect x="17" y="86" width="46" height="7" rx="1.5" fill="#3E2B05" />
-      <path d="M40 22l3.5 7.1 7.8 1.1-5.7 5.5 1.3 7.8-6.9-3.7-6.9 3.7 1.3-7.8-5.7-5.5 7.8-1.1z" fill="#FFF6DA" />
+      {golden && <TopStar cx={45} cy={-7} r={8.5} />}
+      {/* asas */}
+      <g fill="none" strokeLinecap="round">
+        <path d="M19 14 C1 14 1 46 28 51" stroke={TROPHY_EDGE} strokeWidth="7.4" />
+        <path d="M71 14 C89 14 89 46 62 51" stroke={TROPHY_EDGE} strokeWidth="7.4" />
+        <path d="M19 14 C1 14 1 46 28 51" stroke={ring} strokeWidth="6" />
+        <path d="M71 14 C89 14 89 46 62 51" stroke={ring} strokeWidth="6" />
+      </g>
+      {/* copa */}
+      <path d="M16 6 H74 V16 C74 44 60 58 45 60 C30 58 16 44 16 16 Z" fill={`url(#sb${id})`} stroke={TROPHY_EDGE} strokeWidth="0.8" />
+      <path d="M22 10 C22 30 27 46 36 54 L38 54 C31 45 26 30 26 10 Z" fill="#FFFFFF" opacity="0.32" />
+      <rect x="12.5" y="2" width="65" height="7" rx="3.5" fill={ring} stroke={TROPHY_EDGE} strokeWidth="0.6" />
+      <path d={STAR_PATH(45, 31, 10)} fill={ring} stroke={TROPHY_EDGE} strokeWidth="0.6" strokeLinejoin="round" />
+      {/* tallo, nudo y pie */}
+      <path d="M40 59 H50 L48.4 70 H41.6 Z" fill={ring} stroke={TROPHY_EDGE} strokeWidth="0.5" />
+      <ellipse cx="45" cy="71" rx="8.5" ry="3" fill={ring} stroke={TROPHY_EDGE} strokeWidth="0.5" />
+      <path d="M31 75 H59 L63.5 92 H26.5 Z" fill={c.base} stroke={TROPHY_EDGE} strokeWidth="0.7" />
+      <rect x="35" y="80" width="20" height="7" rx="1.2" fill={ring} opacity="0.9" />
+      <rect x="22" y="92" width="46" height="8" rx="2" fill={c.base} stroke={TROPHY_EDGE} strokeWidth="0.7" />
     </svg>
   );
 }
@@ -12443,7 +12515,7 @@ function SeasonTrophyArt({ golden = false, size = 72 }) {
 function TrophyPiece({ art, tag, title, glow }) {
   return (
     <div title={title} className="flex flex-col items-center gap-1" style={{ minWidth: 64 }}>
-      <div style={{ height: 76, filter: glow ? `drop-shadow(0 0 7px ${glow})` : undefined }}
+      <div style={{ height: 84, filter: glow ? `drop-shadow(0 0 7px ${glow})` : undefined }}
            className="flex items-end justify-center">{art}</div>
       <span style={{ ...headingStyle, fontSize: "0.58rem", color: TOKENS.ink, background: TOKENS.bar,
                      border: `1px solid ${TOKENS.line}`, letterSpacing: 1 }}
@@ -12528,7 +12600,7 @@ function TeamTrophies({ teamName }) {
         {seasons.length > 0 && (
           <TrophyShelf label="Temporadas" count={seasons.length}>
             {seasons.map((s) => (
-              <TrophyPiece key={s.season} art={<SeasonTrophyArt golden={golden.has(s.season.trim())} />}
+              <TrophyPiece key={s.season} art={<SeasonTrophyArt season={s.season} golden={golden.has(s.season.trim())} />}
                            tag={whenTag(s.season)}
                            glow={golden.has(s.season.trim()) ? "#FFD84A" : null}
                            title={`Campeón de la Temporada ${s.season} · ${s.pts} pts${golden.has(s.season.trim()) ? " · GOLDEN ROAD (los 4 Kikudes)" : ""}`} />
